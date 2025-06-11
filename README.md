@@ -254,17 +254,3 @@ npm run dev
 ## 📝 License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
-## 👥 Contributing
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to submit pull requests, report issues, and contribute to the project.
-
-## 📬 Contact
-For questions, support, or business inquiries, please contact us at:
-- **📧 Email**: support@carrentalsystem.com
-- **📞 Phone**: +1-800-CAR-RENT
-- **🌐 Website**: https://www.carrentalsystem.com
-
-## 🙏 Acknowledgments
-- Stripe for secure payment processing
-- AWS for cloud infrastructure
-- Open source community for various libraries and tools
-- Beta testers and early adopters for valuable feedback
