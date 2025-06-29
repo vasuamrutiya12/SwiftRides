@@ -4,10 +4,10 @@ A modern, microservices-based car rental platform that provides a seamless exper
 
 ## 📺 Demo Video
 
-[![Watch the Video](![WhatsApp Image 2025-06-29 at 11 48 59_6672ad10](https://github.com/user-attachments/assets/6641974f-a48e-4f6e-bb68-3fa60e2a7b0b)
-)](https://drive.google.com/file/d/1BNiyVJvKwleH7KJaQN0RZqbaz1zh4tr_/view?usp=drive_link)
-[![Watch the Demo](![WhatsApp Image 2025-06-29 at 11 52 23_624f7e74](https://github.com/user-attachments/assets/a9943f3c-9cfc-4dba-8c87-063bd02be766)
-)](https://drive.google.com/file/d/1q-ngsWY0ROP4EmidmWJJfT8XD5fw5Nth/view?usp=drive_link)
+[![Watch the Video]![WhatsApp Image 2025-06-29 at 11 48 59_6672ad10](https://github.com/user-attachments/assets/6641974f-a48e-4f6e-bb68-3fa60e2a7b0b)
+](https://drive.google.com/file/d/1BNiyVJvKwleH7KJaQN0RZqbaz1zh4tr_/view?usp=drive_link)
+[![Watch the Demo]![WhatsApp Image 2025-06-29 at 11 52 23_624f7e74](https://github.com/user-attachments/assets/a9943f3c-9cfc-4dba-8c87-063bd02be766)
+](https://drive.google.com/file/d/1q-ngsWY0ROP4EmidmWJJfT8XD5fw5Nth/view?usp=drive_link)
 
 > Click the image to watch a quick walkthrough of the Car Rental System in action.
 
