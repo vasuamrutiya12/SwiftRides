@@ -76,6 +76,14 @@ public class RentalCompanyController {
 
     @PostMapping("/{companyId}/register-car")
     public ResponseEntity<CarDto> registerCar(@PathVariable Integer companyId,@RequestBody CarDto request) {
+        System.out.println("=== DEBUG: RentalCompaniesService received car request ===");
+        System.out.println("Company ID: " + companyId);
+        System.out.println("Car Make: " + request.getMake());
+        System.out.println("Car Model: " + request.getModel());
+        System.out.println("Car RCbook: " + request.getRCbook());
+        System.out.println("All request fields: " + request.toString());
+        System.out.println("========================================================");
+        
         CarDto registeredCar = rentalCompanyService.registerCarForCompany(companyId,request);
         return new ResponseEntity<>(registeredCar, HttpStatus.CREATED);
     }

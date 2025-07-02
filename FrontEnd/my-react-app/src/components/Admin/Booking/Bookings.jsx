@@ -4,6 +4,7 @@ import BookingCard from "./BookingCard";
 import Navbar from "../Navbar";
 import ItemsPerPageSelector from "../../RentalCompany/Booking/ItemsPerPageSelector";
 import Pagination from "../../RentalCompany/Booking/Pagination";
+import { useLoading } from "../../Loader/LoadingProvider";
 
 export default function Bookings() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,10 +15,11 @@ export default function Bookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
+  const { showLoader, hideLoader } = useLoading();
 
   useEffect(() => {
     const fetchBookings = async () => {
-      setLoading(true);
+      showLoader("Loading admin bookings data...");
       try {
         const response = await fetch("http://localhost:9090/api/bookings", {
           method: "GET",
@@ -48,6 +50,7 @@ export default function Bookings() {
 
             return {
               ...booking,
+              commission:booking.totalAmount*0.25 ,
               customerName: customer.fullName,
               customerPhone: customer.phoneNumber,
               customerEmail: customer.email || `user${customer.customerId}@example.com`,
@@ -60,6 +63,7 @@ export default function Bookings() {
         console.error("Error fetching bookings:", error);
       } finally {
         setLoading(false);
+        hideLoader();
       }
     };
 
@@ -127,7 +131,7 @@ export default function Bookings() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mx-5">
+          <div className="grid grid-cols-1 min-[890px]:grid-cols-2 min-[1090px]:grid-cols-3 min-[1410px]:grid-cols-4 gap-4 sm:gap-6 mx-5">
             {currentBookings.map((booking) => (
               <BookingCard key={`${booking.id}-${booking.customerEmail}`} booking={booking} />  
             ))}

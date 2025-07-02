@@ -109,6 +109,13 @@ public class RentalCompanyServiceImpl implements RentalCompanyService {
         }
         request.setCompanyId(company.getCompanyId());
 
+        System.out.println("=== DEBUG: Forwarding to CarService ===");
+        System.out.println("Car Make: " + request.getMake());
+        System.out.println("Car Model: " + request.getModel());
+        System.out.println("Car RCbook: " + request.getRCbook());
+        System.out.println("All request fields: " + request.toString());
+        System.out.println("======================================");
+
         return carServiceClient.registerCar(request);
     }
 

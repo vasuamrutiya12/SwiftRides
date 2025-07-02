@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { X } from "lucide-react";
+"use client"
+
+import { useState } from "react"
+import { X } from "lucide-react"
+import { uploadToCloudinary } from "../../utils/uploadToCloudinary"
 
 export default function AddCarForm({ onClose }) {
   const [formData, setFormData] = useState({
@@ -12,46 +15,107 @@ export default function AddCarForm({ onClose }) {
     seatingCapacity: "",
     features: "",
     imageUrls: [],
-    status: "AVAILABLE",
-  });
+    rcBookImage: "", 
+    status: "PENDING", 
+  })
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState("")
+  const [rcBookUploading, setRcBookUploading] = useState(false)
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
+  const handleChange = async (e) => {
+    const { name, value, files } = e.target
 
-    setFormData((prev) => {
-      if (name === "imageUrls") {
-        const existingImages = prev.imageUrls || [];
-        const newImages = Array.from(files).map((file) =>
-          URL.createObjectURL(file)
-        );
-        return { ...prev, imageUrls: [...existingImages, ...newImages] };
-      } else {
-        return { ...prev, [name]: value };
+    if (name === "imageUrls" && files?.length > 0) {
+      try {
+        setIsUploading(true)
+        setUploadError("")
+        const uploadedUrls = []
+
+        for (const file of files) {
+          if (!file.type.startsWith("image/")) {
+            throw new Error("Please upload only image files")
+          }
+
+          const cloudUrl = await uploadToCloudinary(file, "image")
+          if (cloudUrl) {
+            uploadedUrls.push(cloudUrl)
+          }
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          imageUrls: [...prev.imageUrls, ...uploadedUrls],
+        }))
+      } catch (error) {
+        console.error("Error uploading images:", error)
+        setUploadError(error.message || "Failed to upload images. Please try again.")
+      } finally {
+        setIsUploading(false)
       }
-    });
-  };
+    } else if (name === "rcBookImage" && files?.length > 0) {
+      // Handle RC book image upload
+      try {
+        setRcBookUploading(true)
+        setUploadError("")
+        const file = files[0]
+
+        if (!file.type.startsWith("image/")) {
+          throw new Error("Please upload only image files")
+        }
+
+        const cloudUrl = await uploadToCloudinary(file, "image")
+        if (cloudUrl) {
+          setFormData((prev) => ({
+            ...prev,
+            rcBookImage: cloudUrl,
+          }))
+        }
+      } catch (error) {
+        console.error("Error uploading RC book image:", error)
+        setUploadError(error.message || "Failed to upload RC book image. Please try again.")
+      } finally {
+        setRcBookUploading(false)
+      }
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }))
+    }
+  }
+
+  const removeImage = (indexToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      imageUrls: prev.imageUrls.filter((_, index) => index !== indexToRemove),
+    }))
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (formData.imageUrls.length === 0) {
-      alert("Please upload at least one image.");
-      return;
+      alert("Please upload at least one car image.")
+      return
+    }
+
+    if (!formData.rcBookImage) {
+      alert("Please upload RC book image.")
+      return
     }
 
     const formattedData = {
       ...formData,
-      year: parseInt(formData.year),
-      dailyRate: parseFloat(formData.dailyRate),
-      seatingCapacity: parseInt(formData.seatingCapacity),
-      features: formData.features
-        .split(",")
-        .map((feature) => feature.trim()),
-    };
-
+      year: Number.parseInt(formData.year),
+      dailyRate: Number.parseFloat(formData.dailyRate),
+      seatingCapacity: Number.parseInt(formData.seatingCapacity),
+      features: formData.features.split(",").map((feature) => feature.trim()),
+      rcbook: formData.rcBookImage,
+    }
+    delete formattedData.rcBookImage
     try {
-      const token = localStorage.getItem("token");
-      const email = localStorage.getItem("email");
+      const token = localStorage.getItem("token")
+      const email = localStorage.getItem("email")
       const resId = await fetch("http://localhost:8084/auth/user/email", {
         method: "POST",
         headers: {
@@ -59,38 +123,35 @@ export default function AddCarForm({ onClose }) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ email }),
-      });
+      })
 
-      const id = await resId.json();
+      const id = await resId.json()
 
-      const response = await fetch(
-        `http://localhost:9090/api/rental-company/${id}/register-car`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(formattedData),
-        }
-      );
+      const response = await fetch(`http://localhost:9090/api/rental-company/${id}/register-car`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formattedData),
+      })
 
       if (!response.ok) {
-        throw new Error("Failed to register car");
+        throw new Error("Failed to register car")
       }
 
-      const result = await response.json();
-      console.log("Car registered successfully:", result);
-      alert("Car added successfully!");
-      onClose();
+      const result = await response.json()
+      console.log("Car registered successfully:", result)
+      alert("Car added successfully!")
+      onClose()
     } catch (error) {
-      console.error("Error registering car:", error);
-      alert("Failed to add car. Please try again.");
+      console.error("Error registering car:", error)
+      alert("Failed to add car. Please try again.")
     }
-  };
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Add New Car</h2>
@@ -213,17 +274,74 @@ export default function AddCarForm({ onClose }) {
               accept="image/*"
               multiple
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              disabled={isUploading}
             />
+            {isUploading && <p className="text-sm text-gray-600 mt-1">Uploading images...</p>}
+            {uploadError && <p className="text-sm text-red-600 mt-1">{uploadError}</p>}
             <div className="mt-2 flex flex-wrap gap-2">
               {formData.imageUrls.map((url, index) => (
-                <img
-                  key={index}
-                  src={url}
-                  alt={`Car ${index}`}
-                  className="w-20 h-20 object-cover rounded border"
-                />
+                <div key={index} className="relative">
+                  <img
+                    src={url || "/placeholder.svg"}
+                    alt={`Car ${index + 1}`}
+                    className="w-20 h-20 object-cover rounded border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">RC Book Image *</label>
+            <input
+              type="file"
+              name="rcBookImage"
+              onChange={handleChange}
+              accept="image/*"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              disabled={rcBookUploading}
+              required
+            />
+            {rcBookUploading && <p className="text-sm text-gray-600 mt-1">Uploading RC book image...</p>}
+            {formData.rcBookImage && (
+              <div className="mt-2">
+                <div className="relative inline-block">
+                  <img
+                    src={formData.rcBookImage || "/placeholder.svg"}
+                    alt="RC Book"
+                    className="w-32 h-24 object-cover rounded border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, rcBookImage: "" }))}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-sm text-green-600 mt-1">RC book image uploaded successfully</p>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <input
+              type="text"
+              name="status"
+              value={formData.status}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+              disabled
+              readOnly
+            />
+            <p className="text-sm text-gray-500 mt-1">Status will be set to PENDING for admin approval</p>
           </div>
 
           <div className="flex space-x-4 pt-4">
@@ -234,15 +352,12 @@ export default function AddCarForm({ onClose }) {
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-            >
+            <button type="submit" className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
               Add Car
             </button>
           </div>
         </form>
       </div>
     </div>
-  );
+  )
 }

@@ -4,7 +4,9 @@ import com.stripe.Stripe;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class StripeConfig {
@@ -24,6 +26,11 @@ public class StripeConfig {
     @Value("${stripe.api.key}")
     @NotBlank(message = "Stripe API Key is required")
     private String apiKey;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     @PostConstruct
     public void initStripe() {

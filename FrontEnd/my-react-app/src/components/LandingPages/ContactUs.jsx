@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
+
+
+import React, { useState , useEffect } from 'react';
 import { Mail, Send, MapPin, Clock, Phone, MessageSquare, Star, CheckCircle, Car, Shield, CreditCard } from 'lucide-react';
 import Navbar from './Navbar';
+import { useLocation } from 'react-router-dom';
+import {useLoading} from '../Loader/LoadingProvider'
+
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +16,17 @@ const ContactUs = () => {
     message: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const location = useLocation();
+  const { showLoader, hideLoader ,isLoading} = useLoading()
+
+   useEffect(() => {
+    if (location.hash) {
+      const element = document.querySelector(location.hash);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [location]);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -19,7 +35,8 @@ const ContactUs = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
+  showLoader("Submitting Query...")
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
@@ -58,6 +75,7 @@ const ContactUs = () => {
       console.error('Error submitting form:', error);
       alert('Failed to submit form. Please try again later.');
     }
+    hideLoader()
   };
 
   const contactReasons = [
@@ -181,14 +199,15 @@ const ContactUs = () => {
       </div>
 
       {/* Contact Form */}
-      <div className="py-12 sm:py-16 lg:py-20 bg-white/50 backdrop-blur-sm">
+      <div id="query-form" className="py-12 sm:py-16 lg:py-20 bg-white/50 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Send Us an Email</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Send Us any Inquiry </h2>
             <p className="text-lg sm:text-xl text-gray-600">
               Fill out the form below and we'll get back to you as soon as possible
             </p>
           </div>
+
 
           {isSubmitted ? (
             <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
@@ -201,7 +220,7 @@ const ContactUs = () => {
           ) : (
             <form>
             <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-10">
-              <div className="grid sm:grid-cols-2 gap-6 mb-6">
+							<div className="grid sm:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
                     Full Name *
@@ -233,7 +252,6 @@ const ContactUs = () => {
                   />
                 </div>
               </div>
-
               <div className="grid sm:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -310,23 +328,17 @@ const ContactUs = () => {
             <p className="text-lg sm:text-xl text-blue-100 mb-6 max-w-2xl mx-auto">
               You can also reach us directly at our dedicated support email addresses
             </p>
-            <div className="grid sm:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto">
+            <div className="grid sm:grid-cols-2 gap-4 sm:gap-8 max-w-4xl mx-auto">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
                 <h3 className="font-semibold mb-2">General Support</h3>
-                <a href="mailto:support@renteasy.com" className="text-blue-200 hover:text-white transition-colors">
-                  support@renteasy.com
+                <a href="mailto:druman200012@gmail.com" className="text-blue-200 hover:text-white transition-colors">
+                  Druman Kaneriya
                 </a>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
                 <h3 className="font-semibold mb-2">Booking Help</h3>
-                <a href="mailto:bookings@renteasy.com" className="text-blue-200 hover:text-white transition-colors">
-                  bookings@renteasy.com
-                </a>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                <h3 className="font-semibold mb-2">Business Inquiries</h3>
-                <a href="mailto:business@renteasy.com" className="text-blue-200 hover:text-white transition-colors">
-                  business@renteasy.com
+                <a href="mailto:druman200012@gmail.com" className="text-blue-200 hover:text-white transition-colors">
+                  Vasu Amrutiya
                 </a>
               </div>
             </div>
@@ -335,7 +347,7 @@ const ContactUs = () => {
       </div>
 
       {/* FAQ Section */}
-      <div className="py-12 sm:py-16 lg:py-20 bg-white/50 backdrop-blur-sm">
+      <div id="faq-section" className="py-12 sm:py-16 lg:py-20 bg-white/50 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>

@@ -39,6 +39,8 @@ export default function Reviews() {
         })
 
         const reviewsData = await res.json()
+        console.log(reviewsData);
+        
 
         const enrichedReviews = await Promise.all(
           reviewsData.map(async (review) => {
@@ -48,21 +50,23 @@ export default function Reviews() {
                   Authorization: `Bearer ${token}`,
                 },
               }).then((res) => res.json()),
+              
               fetch(`http://localhost:9090/api/customers/${review.customerId}`, {
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
               }).then((res) => res.json()),
-            ])
-
+            ])            
             return {
               id: review.reviewId,
               customerName: customerRes.fullName,
               carName: `${carRes.make} ${carRes.model}`,
               rating: review.rating,
               comment: review.comment,
+              reply:review.reply,
+              reportReason: review.report?.reason,
+              reportMessage: review.report?.additionalDetails,
               date: new Date(review.createdAt).toISOString().split("T")[0],
-              customerAvatar: "/placeholder.svg?height=40&width=40",
             }
           })
         )

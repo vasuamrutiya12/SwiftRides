@@ -24,4 +24,6 @@ public class BookingRequestDto {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private CarDto car; // ✅ Nested car object
+
+    private String errorMessage;
 }

@@ -9,6 +9,7 @@ import com.carrental.BookingService.Feign.InventoryClient;
 import com.carrental.BookingService.Feign.RentalCompanyClient;
 import com.carrental.BookingService.Feign.CarClient;
 import com.carrental.BookingService.Repository.BookingRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -138,5 +139,6 @@ public class BookingServiceImpl implements BookingService {
                 .mapToDouble(booking -> booking.getTotalAmount())
                 .sum();
     }
+
 
 }

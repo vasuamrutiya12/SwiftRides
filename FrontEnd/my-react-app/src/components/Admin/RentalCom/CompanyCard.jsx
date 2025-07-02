@@ -31,7 +31,10 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
   }, [showEditModal, company]);
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return "Not Submitted";
+    const date = new Date(dateString);
+    if (isNaN(date)) return "Invalid Date";
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -39,9 +42,19 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
   };
 
   const getStatusColor = (status) => {
-    return status === 'active' 
-      ? 'bg-green-100 text-green-800' 
-      : 'bg-red-100 text-red-800';
+    if (!status) return 'bg-gray-100 text-gray-800 border-gray-200';
+    switch (status.toLowerCase()) {
+      case 'available':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+    }
   };
 
   const getVerificationStatusColor = (status) => {
@@ -51,6 +64,7 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
       case 'rejected':
         return 'bg-red-100 text-red-800 border-red-200';
       case 'pending':
+      case 'PENDING':
       default:
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     }
@@ -63,6 +77,22 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
       case 'rejected':
         return <XCircle className="w-4 h-4" />;
       case 'pending':
+      case 'PENDING':
+      default:
+        return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch ((status || '').toLowerCase()) {
+      case 'available':
+        return <CheckCircle className="w-4 h-4" />;
+      case 'pending':
+        return <Clock className="w-4 h-4" />;
+      case 'inactive':
+        return <X className="w-4 h-4" />;
+      case 'reject':
+        return <XCircle className="w-4 h-4 bg-red-100 text-red-500" />;
       default:
         return <Clock className="w-4 h-4" />;
     }
@@ -119,15 +149,15 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
   };
 
   const handleVerification = async (carId, status, reason = '') => {
+   const curremail= localStorage.getItem("email");
     const verificationData = {
       carId,
       verificationStatus: status,
       reason: reason || null,
       verifiedAt: new Date().toISOString(),
-      verifiedBy: 'current_admin@example.com' // This should come from your auth context
+      verifiedBy: curremail // This should come from your auth context
     };
 
-    console.log('Sending verification data to backend:', verificationData);
 
     // Call the parent's verification handler
     if (onCarVerification) {
@@ -138,12 +168,22 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
     setShowRCModal(false);
     setSelectedCar(null);
   };
+  console.log(selectedCar);
+
+  const isPending =
+    selectedCar &&
+    (
+      selectedCar.verificationStatus === 'pending' ||
+      selectedCar.verificationStatus === 'PENDING' ||
+      selectedCar.status === 'pending' ||
+      selectedCar.status === 'PENDING'
+    );
 
   return (
     <>
       <div className="w-[450px] bg-gradient-to-b from-white to-red-50 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-red-100 overflow-hidden hover:transform hover:scale-105 backdrop-blur-sm">
         {/* Header */}
-        <div className="bg-gradient-to-br from-red-400  to-red-300 p-6 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-br from-red-400  to-red-500 p-6 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg bg-opacity-10"></div>
           <div className="relative z-10 flex justify-between items-start">
             <h3 className="text-xl font-bold truncate  drop-shadow-sm">{company.companyName}</h3>
@@ -259,9 +299,9 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
                       <div className="absolute -right-5 -top-5 w-10 h-10 bg-red-100 rounded-full opacity-50"></div>
                       
                       {/* Verification Status Badge */}
-                      <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 border ${getVerificationStatusColor(car.verificationStatus)}`}>
-                        {getVerificationIcon(car.verificationStatus)}
-                        <span className="capitalize">{car.verificationStatus}</span>
+                      <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 border ${getStatusColor(car.status)}`}>
+                        {getStatusIcon(car.status)}
+                        <span className="capitalize">{car.status}</span>
                       </div>
 
                       {/* Car Image */}
@@ -270,7 +310,7 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
                           <img
                             src={car.imageUrls[0]}
                             alt={`${car.make} ${car.model}`}
-                            className="w-full h-40 object-cover rounded-xl bg-red-50 shadow-md"
+                            className="w-full h-40 object-cover rounded-xl bg-white-50 shadow-md"
                             onError={(e) => {
                               e.target.style.display = 'none';
                               e.target.nextSibling.style.display = 'flex';
@@ -403,10 +443,13 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center space-x-2">
                     <Eye className="w-5 h-5 text-blue-600" />
                     <span>RC Book Document</span>
+                    
+                    
                   </h3>
                   <div className="bg-white border-2 border-gray-200 rounded-xl p-4 shadow-lg">
                     <img
-                      src={selectedCar.rcBookImageUrl}
+                    
+                      src={selectedCar.rcbook}
                       alt="RC Book"
                       className="w-full h-64 object-cover rounded-lg shadow-md"
                       onError={(e) => {
@@ -419,7 +462,11 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-gray-600">Submitted:</span>
-                      <span className="text-sm text-gray-800">{formatDate(selectedCar.submittedAt)}</span>
+                      <span className="text-sm text-gray-800">
+                        {selectedCar.createdAt && !isNaN(new Date(selectedCar.createdAt)) 
+                          ? formatDate(selectedCar.createdAt) 
+                          : "Not Submitted"}
+                      </span>
                     </div>
                     {selectedCar.verifiedAt && (
                       <div className="flex justify-between">
@@ -477,29 +524,78 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
                   <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                     <div className="flex items-center space-x-3">
                       <span className="font-medium text-gray-600">Current Status:</span>
-                      <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1 border ${getVerificationStatusColor(selectedCar.verificationStatus)}`}>
-                        {getVerificationIcon(selectedCar.verificationStatus)}
-                        <span className="capitalize">{selectedCar.verificationStatus}</span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1 border ${getStatusColor(selectedCar.status)}`}>
+                        {selectedCar.status ? selectedCar.status.charAt(0).toUpperCase() + selectedCar.status.slice(1).toLowerCase() : 'Unknown'}
                       </span>
                     </div>
                   </div>
 
                   {/* Verification Actions */}
-                  {selectedCar.verificationStatus === 'pending' && (
+                  {selectedCar && isPending && (
                     <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4 shadow-sm">
                       <h4 className="font-semibold text-gray-800">Admin Actions</h4>
                       
                       <div className="flex space-x-3">
                         <button
-                          onClick={() => handleVerification(selectedCar.carId, 'approved')}
+                          onClick={async () => {
+                            try {
+                              // First approve the car
+                              await handleVerification(selectedCar.carId, 'approved');
+                              
+                              // Then update car status to available
+                              const token = localStorage.getItem('token');
+                              const response = await fetch(`http://localhost:9090/api/cars/${selectedCar.carId}/status`, {
+                                method: 'PUT',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ status: 'available' })
+                              });
+                              
+                              if (!response.ok) throw new Error('Failed to update car status');
+                              
+                              alert('Car approved and status updated to available!');
+                              setShowRCModal(false);
+                              setSelectedCar(null);
+                            } catch (err) {
+                              console.error('Error updating car:', err);
+                              alert('Failed to update car status.');
+                            }
+                          }}
                           className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2"
                         >
                           <CheckCircle className="w-5 h-5" />
-                          <span>Approve</span>
+                          <span>Approve & Make Available</span>
                         </button>
                         
                         <button
-                          onClick={() => handleVerification(selectedCar.carId, 'rejected', 'Document unclear or invalid')}
+                          onClick={async () => {
+                            try {
+                              // First approve the car
+                              await handleVerification(selectedCar.carId, 'reject');
+                              
+                              // Then update car status to available
+                              const token = localStorage.getItem('token');
+                              const response = await fetch(`http://localhost:9090/api/cars/${selectedCar.carId}/status`, {
+                                method: 'PUT',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ status: 'reject' })
+                              });
+                              
+                              if (!response.ok) throw new Error('Failed to update car status');
+                              
+                              alert('Car rejected and status updated to maintenence!');
+                              setShowRCModal(false);
+                              setSelectedCar(null);
+                            } catch (err) {
+                              console.error('Error updating car:', err);
+                              alert('Failed to update car status.');
+                            }
+                          }}
                           className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2"
                         >
                           <XCircle className="w-5 h-5" />
@@ -520,11 +616,11 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
                   )}
 
                   {/* Already Verified Info */}
-                  {selectedCar.verificationStatus !== 'pending' && (
+                  {selectedCar && (selectedCar.verificationStatus !== 'pending' && selectedCar.verificationStatus !== 'PENDING') && (
                     <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                       <h4 className="font-semibold text-gray-800 mb-2">Verification Complete</h4>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>Status: <span className="font-medium capitalize">{selectedCar.verificationStatus}</span></p>
+                        <p>Status: <span className="font-medium capitalize">{selectedCar.status ? selectedCar.status.charAt(0).toUpperCase() + selectedCar.status.slice(1) : 'Not Verified'}</span></p>
                         {selectedCar.verifiedAt && (
                           <p>Date: <span className="font-medium">{formatDate(selectedCar.verifiedAt)}</span></p>
                         )}
@@ -532,6 +628,36 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
                           <p>By: <span className="font-medium">{selectedCar.verifiedBy}</span></p>
                         )}
                       </div>
+                      {/* Verified Button: Only show if approved and not already available */}
+                      {selectedCar.verificationStatus === 'approved' && selectedCar.status !== 'available' && (
+                        <button
+                          className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
+                          onClick={async () => {
+                            try {
+                              // Call backend to update car status
+                              const token = localStorage.getItem('token');
+                              const response = await fetch(`http://localhost:9090/api/cars/${selectedCar.carId}/status`, {
+                                method: 'PUT',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ status: 'available' })
+                              });
+                              if (!response.ok) throw new Error('Failed to update car status');
+                              // Optionally update UI (local state)
+                              alert('Car status updated to available!');
+                              setShowRCModal(false);
+                              setSelectedCar(null);
+                            } catch (err) {
+                              alert('Failed to update car status.');
+                            }
+                          }}
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                          <span>Mark as Available</span>
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -543,8 +669,8 @@ const CompanyCard = ({ company, onEdit, onDelete, onCarVerification }) => {
 
       {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-opacity-60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-red-100 overflow-hidden">
+        <div className="fixed inset-0 bg-opacity-60 flex items-center justify-center p-4 z-50 backdrop-blur-sm overflow-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-red-100">
             {/* Modal Header */}
             <div className="bg-gradient-to-br from-red-400 via-red-400 to-red-700 px-6 py-4 text-white relative overflow-hidden">
               <div className="absolute inset-0  bg-opacity-10"></div>

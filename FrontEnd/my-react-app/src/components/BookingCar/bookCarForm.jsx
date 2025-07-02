@@ -1,14 +1,16 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Car, ArrowLeft, Star, Users, MapPin, CheckCircle, Calendar, Clock, CreditCard } from "lucide-react"
 import { useNavigate } from "react-router-dom";
+import { useLoading } from "../Loader/LoadingProvider";
 
 const BookCarForm = ({ car, company, onBack }) => {
 
   const [pickupDate, setPickupDate] = useState("")
   const [returnDate, setReturnDate] = useState("")
   const [paymentMethod, setPaymentMethod] = useState("card");
-  const [Currency, setCurrency] = useState("");
-  const [description, setDescription] = useState("");
+  const [currency, setCurrency] = useState("inr");
+  const [exchangeRates, setExchangeRates] = useState({});
+  const { showLoader, hideLoader } = useLoading();
 
   const [id, setId] = useState(0);
   const [error, setError] = useState("")
@@ -17,6 +19,45 @@ const BookCarForm = ({ car, company, onBack }) => {
 
   const token = localStorage.getItem("token");
   const email = localStorage.getItem("email");
+
+  // Supported currencies for Stripe
+  const supportedCurrencies = [
+    { code: "inr", name: "Indian Rupee", symbol: "₹" },
+    { code: "usd", name: "US Dollar", symbol: "$" },
+    { code: "eur", name: "Euro", symbol: "€" },
+    { code: "gbp", name: "British Pound", symbol: "£" },
+    { code: "aud", name: "Australian Dollar", symbol: "A$" },
+    { code: "cad", name: "Canadian Dollar", symbol: "C$" },
+    { code: "jpy", name: "Japanese Yen", symbol: "¥" },
+    { code: "sgd", name: "Singapore Dollar", symbol: "S$" },
+  ];
+
+  // Fetch exchange rates on component mount
+  useEffect(() => {
+    const fetchExchangeRates = async () => {
+      try {
+        // Using a free API for exchange rates (you can replace with your preferred service)
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/INR');
+        const data = await response.json();
+        setExchangeRates(data.rates);
+      } catch (error) {
+        console.error('Error fetching exchange rates:', error);
+        // Fallback rates if API fails
+        setExchangeRates({
+          INR: 1,
+          USD: 0.012,
+          EUR: 0.011,
+          GBP: 0.0095,
+          AUD: 0.018,
+          CAD: 0.016,
+          JPY: 1.8,
+          SGD: 0.016,
+        });
+      }
+    };
+
+    fetchExchangeRates();
+  }, []);
 
   const validateDates = () => {
     const today = new Date()
@@ -42,11 +83,30 @@ const BookCarForm = ({ car, company, onBack }) => {
     return true
   }
 
+  const convertCurrency = (amount, fromCurrency, toCurrency) => {
+    if (!exchangeRates[toCurrency.toUpperCase()]) return amount;
+    
+    // Convert from INR to target currency
+    const convertedAmount = amount * exchangeRates[toCurrency.toUpperCase()];
+    
+    // Round to 2 decimal places for most currencies, except JPY which doesn't use decimals
+    if (toCurrency.toLowerCase() === 'jpy') {
+      return Math.round(convertedAmount);
+    }
+    return Math.round(convertedAmount * 100) / 100;
+  };
+
   const calculateTotal = () => {
     if (!pickupDate || !returnDate) return 0
     const totalDays = Math.ceil((new Date(returnDate) - new Date(pickupDate)) / (1000 * 60 * 60 * 24))
-    return Math.max(1, totalDays) * car.dailyRate
+    const totalInINR = Math.max(1, totalDays) * car.dailyRate
+    return convertCurrency(totalInINR, 'inr', currency)
   }
+
+  const getCurrentCurrencySymbol = () => {
+    const currencyObj = supportedCurrencies.find(c => c.code === currency);
+    return currencyObj ? currencyObj.symbol : '₹';
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,7 +118,9 @@ const BookCarForm = ({ car, company, onBack }) => {
     }
 
     const totalDays = Math.ceil((new Date(returnDate) - new Date(pickupDate)) / (1000 * 60 * 60 * 24));
-    const totalAmount = Math.max(1, totalDays) * car.dailyRate;
+    const totalAmountINR = Math.max(1, totalDays) * car.dailyRate;
+    // Don't convert here - send original INR amount to backend
+    // const totalAmountConverted = convertCurrency(totalAmountINR, 'inr', currency);
 
     const booking = {
       companyID: car.companyId,
@@ -66,13 +128,11 @@ const BookCarForm = ({ car, company, onBack }) => {
       pickupDate: new Date(pickupDate).toISOString(),
       returnDate: new Date(returnDate).toISOString(),
       totalDays: Math.max(1, totalDays),
-      totalAmount: totalAmount,
+      totalAmount: totalAmountINR, // Send original INR amount
       status: "pending",
       bookingReference: "BOOK" + Math.random().toString(36).substring(2, 10).toUpperCase(),
+      errorMessage: "",
     };
-
-    console.log(booking);
-
 
     try {
       const resId = await fetch("http://localhost:8084/auth/user/email", {
@@ -84,9 +144,8 @@ const BookCarForm = ({ car, company, onBack }) => {
         body: JSON.stringify({ email }),
       });
       const Id = await resId.json();
-      console.log(Id);
       setId(Id);
-      console.log(booking);
+      
       const response = await fetch(`http://localhost:9090/api/customers/${Id}/booking`, {
         method: "POST",
         headers: {
@@ -96,30 +155,24 @@ const BookCarForm = ({ car, company, onBack }) => {
         body: JSON.stringify(booking),
       });
 
-      if (response.ok) {
-        console.log("done");
-
-      }
-
       if (!response.ok) {
-        throw new Error("Failed to submit booking");
+        const data = await response.json();
+        throw new Error(data.errorMessage);
       }
 
       const data = await response.json();
       alert(`Booking submitted successfully! Reference: ${data.bookingReference}`);
+      
       const paymentPayload = {
         bookingId: Number(data.bookingId),
         companyId: Number(booking.companyID),
-        amount: Number(booking.totalAmount),
+        amount: Number(totalAmountINR), // Send original INR amount
         paymentMethod: "card",
-        currency: Currency?.toLowerCase() || "inr",
+        currency: currency.toLowerCase(),
         customerEmail: email?.trim() || "unknown@example.com",
         description: "Payment for car rental booking",
       };
 
-
-
-      console.log("Frontend JSON:", JSON.stringify(paymentPayload, null, 2));
 
       const paymentResponse = await fetch("http://localhost:9090/api/payments/create-session", {
         method: "POST",
@@ -135,28 +188,27 @@ const BookCarForm = ({ car, company, onBack }) => {
       }
 
       const paymentData = await paymentResponse.json();
-      const redirectUrl = paymentData.checkoutUrl; // Stripe Checkout URL
+      const redirectUrl = paymentData.checkoutUrl;
 
-      // ✅ Redirect to Stripe Checkout
+      // Redirect to Stripe Checkout
       window.location.href = redirectUrl;
 
     } catch (error) {
       console.error("Error:", error);
-      alert("Something went wrong. Please try again.");
+      alert(error);
+      navigate(-1);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleBackClick = () => {
-    // Call the onBack function if provided, otherwise just close the modal
     if (onBack && typeof onBack === 'function') {
       onBack()
     }
   }
 
   const handleBackdropClick = (e) => {
-    // Close modal when clicking on backdrop (outside the modal content)
     if (e.target === e.currentTarget) {
       handleBackClick()
     }
@@ -169,7 +221,7 @@ const BookCarForm = ({ car, company, onBack }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={handleBackdropClick}
     >
       <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto">
@@ -182,7 +234,6 @@ const BookCarForm = ({ car, company, onBack }) => {
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back to cars</span>
             </button>
-
           </div>
         </div>
 
@@ -190,11 +241,11 @@ const BookCarForm = ({ car, company, onBack }) => {
           <div className="grid lg:grid-cols-5 gap-8">
             <div className="lg:col-span-3">
               <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl overflow-hidden">
-                <div className="relative h-72">
+                <div className="relative h-72 p-1">
                   <img
                     src={car.imageUrls[0]}
                     alt={`${car.make} ${car.model}`}
-                    className="w-full h-full object-cover"
+                    className="rounded-2xl w-full h-full bg-white object-contain"
                   />
                 </div>
                 <div className="p-6">
@@ -219,8 +270,15 @@ const BookCarForm = ({ car, company, onBack }) => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold text-blue-600">₹{car.dailyRate}</div>
+                      <div className="text-3xl font-bold text-blue-600">
+                        {getCurrentCurrencySymbol()}{convertCurrency(car.dailyRate, 'inr', currency)}
+                      </div>
                       <div className="text-gray-500">per day</div>
+                      {currency !== 'inr' && (
+                        <div className="text-sm text-gray-400">
+                          (₹{car.dailyRate} INR)
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -246,7 +304,7 @@ const BookCarForm = ({ car, company, onBack }) => {
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Book This Car</h2>
 
                 <div onSubmit={handleSubmit} className="space-y-6">
-                  {/* Pickup Date & Time */}
+                  {/* Pickup Date */}
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -263,8 +321,7 @@ const BookCarForm = ({ car, company, onBack }) => {
                     </div>
                   </div>
 
-
-                  {/* Return Date & Time */}
+                  {/* Return Date */}
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -280,34 +337,26 @@ const BookCarForm = ({ car, company, onBack }) => {
                       />
                     </div>
                   </div>
+
+                  {/* Currency Selection */}
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <Calendar className="w-4 h-4 inline mr-1" />
-                        Payment Curruncy
+                        <CreditCard className="w-4 h-4 inline mr-1" />
+                        Payment Currency
                       </label>
-                      <input
-                        type="text"
-                        value={Currency}
+                      <select
+                        value={currency}
                         onChange={(e) => setCurrency(e.target.value)}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                         required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <Calendar className="w-4 h-4 inline mr-1" />
-                        Description
-                      </label>
-                      <input
-                        type="text"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
-                        required
-                      />
+                      >
+                        {supportedCurrencies.map((curr) => (
+                          <option key={curr.code} value={curr.code}>
+                            {curr.symbol} {curr.name} ({curr.code.toUpperCase()})
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -326,7 +375,9 @@ const BookCarForm = ({ car, company, onBack }) => {
                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Daily rate</span>
-                        <span className="font-medium">₹{car.dailyRate}</span>
+                        <span className="font-medium">
+                          {getCurrentCurrencySymbol()}{convertCurrency(car.dailyRate, 'inr', currency)}
+                        </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Duration</span>
@@ -334,11 +385,24 @@ const BookCarForm = ({ car, company, onBack }) => {
                           {totalDays} day{totalDays > 1 ? "s" : ""}
                         </span>
                       </div>
+                      {currency !== 'inr' && (
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Original price (INR)</span>
+                          <span>₹{Math.max(1, totalDays) * car.dailyRate}</span>
+                        </div>
+                      )}
                       <div className="border-t border-blue-200 pt-2">
                         <div className="flex justify-between">
                           <span className="font-semibold text-gray-900">Total</span>
-                          <span className="font-bold text-xl text-blue-600">₹{calculateTotal()}</span>
+                          <span className="font-bold text-xl text-blue-600">
+                            {getCurrentCurrencySymbol()}{calculateTotal()}
+                          </span>
                         </div>
+                        {currency !== 'inr' && (
+                          <div className="text-xs text-gray-500 text-right mt-1">
+                            (₹{Math.max(1, totalDays) * car.dailyRate} INR)
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -358,7 +422,7 @@ const BookCarForm = ({ car, company, onBack }) => {
                     ) : (
                       <>
                         <CreditCard className="w-5 h-5" />
-                        Book Now
+                        Book Now - {getCurrentCurrencySymbol()}{calculateTotal()}
                       </>
                     )}
                   </button>

@@ -40,7 +40,12 @@ public class AuthConfig {
                                 "/auth/user/{userId}",
                                 "/auth/validate",
                                 "/auth/register/initiate",
-                                "/auth/register/verify"
+                                "/auth/register/verify",
+                                "/auth/register/resend-otp",
+                                "/auth/forgot-password/send-otp",
+                                "/auth/forgot-password/verify-otp",
+                                "/auth/forgot-password/reset",
+                                "/auth/forgot-password/resend-otp"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );

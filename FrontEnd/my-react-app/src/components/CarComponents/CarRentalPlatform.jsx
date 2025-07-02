@@ -4,13 +4,15 @@ import AllCars from "./AllCars";
 import Navbar from "../LandingPages/Navbar";
 import BookCarForm from "../BookingCar/bookCarForm"; // Add this import if it's missing
 import { useNavigate, useLocation } from "react-router-dom";
+import { useLoading } from "../Loader/LoadingProvider";
+import { MapPin, Calendar, Search } from 'lucide-react';
 
 const CarRentalPlatform = () => {
   const [filteredCars, setFilteredCars] = useState([]);
   const [selectedCar, setSelectedCar] = useState(null);
   const [carCompanyData, setCarCompanyData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const { showLoader , hideLoader } = useLoading();
 
   const [filters, setFilters] = useState({
     seating: "",
@@ -26,10 +28,30 @@ const CarRentalPlatform = () => {
   const location = useLocation();
   const searchResults = location.state?.searchResults || null;
 
+  // Search form state
+  const getDefaultDates = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const dayAfterTomorrow = new Date(today);
+    dayAfterTomorrow.setDate(today.getDate() + 2);
+    const toISODate = (date) => date.toISOString().split('T')[0];
+    return {
+      pickup: toISODate(tomorrow),
+      ret: toISODate(dayAfterTomorrow),
+    };
+  };
+  const defaultDates = getDefaultDates();
+  const [pickupLocation, setPickupLocation] = useState('');
+  const [pickupDate, setPickupDate] = useState(defaultDates.pickup);
+  const [returnDate, setReturnDate] = useState(defaultDates.ret);
+
+  const [showAllCars, setShowAllCars] = useState(false);
+
   // Fetch rental company data
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
+      showLoader("Loading cars...");
       try {
         const response = await fetch("http://localhost:9090/api/rental-company", {
           method: "GET",
@@ -49,35 +71,17 @@ const CarRentalPlatform = () => {
         console.error("Car data error:", error);
         setError("An error occurred. Please try again later.");
       } finally {
-        setIsLoading(false);
+        hideLoader();
       }
     };
 
     fetchData();
   }, []);
 
-  // Extract all cars with metadata
-  const getAllCars = () => {
-    return carCompanyData
-      .filter((company) => company.status === "active")
-      .flatMap((company) => {
-        if (Array.isArray(company.cars)) {
-          return company.cars.map((car) => ({
-            ...car,
-            companyName: company.companyName,
-            companyCity: company.city,
-            companyAddress: company.address,
-            companyPhone: company.phoneNumber,
-            companyId: company.companyId,
-          }));
-        }
-        return [];
-      });
-  };
-
   // Filter cars based on current filter state
   const applyFilters = (cars) => {
     return cars.filter((car) => {
+      if (car.status && car.status.toUpperCase() === 'PENDING') return false; // Exclude PENDING cars
       const matchesSeating = !filters.seating || car.seatingCapacity === parseInt(filters.seating);
       const matchesFuel = !filters.fuelType || car.fuelType?.toLowerCase() === filters.fuelType.toLowerCase();
       const matchesCategory = !filters.category || car.category?.toLowerCase() === filters.category.toLowerCase();
@@ -116,26 +120,73 @@ const CarRentalPlatform = () => {
       }
     });
 
-    return Object.values(grouped);
+    // Only return companies that have at least one car
+    return Object.values(grouped).filter(company => company.cars.length > 0);
   };
 
-  // Recalculate filtered cars on data or filter change
-  console.log(searchResults);
-  
+  // Fetch cars from search API
+  const fetchCars = async (city, pickup, ret) => {
+    showLoader('Searching cars...');
+    try {
+      const token = localStorage.getItem('token');
+      let url;
+      if (city && city.trim() !== '') {
+        url = `http://localhost:9090/api/search?city=${city}&pickupDate=${pickup}&returnDate=${ret}`;
+      } else {
+        // No city: fetch all cars (adjust endpoint as per your backend)
+        url = `http://localhost:9090/api/search?pickupDate=${pickup}&returnDate=${ret}`;
+      }
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      // data is an array of { car, company }
+      const cars = data.map(item => ({
+        ...item.car,
+        companyName: item.company.companyName,
+        companyCity: item.company.city,
+        companyAddress: item.company.address,
+        companyPhone: item.company.phoneNumber,
+        companyId: item.company.companyId,
+      }));
+      setFilteredCars(applyFilters(cars));
+    } catch (error) {
+      setError('Error searching cars');
+    } finally {
+      hideLoader();
+    }
+  };
+
+  // Initial fetch (default values)
   useEffect(() => {
-    const allCars = searchResults
-      ? searchResults.map(item => ({
-          ...item.car,
-          companyName: item.company.companyName,
-          companyCity: item.company.city,
-          companyAddress: item.company.address,
-          companyPhone: item.company.phoneNumber,
-          companyId: item.company.companyId,
-        }))
-      : getAllCars();
-    const filtered = applyFilters(allCars);
-    setFilteredCars(filtered);
-  }, [searchResults, filters, carCompanyData]);
+    const params = new URLSearchParams(location.search);
+    const city = params.get("city");
+    const pickup = params.get("pickupDate");
+    const ret = params.get("returnDate");
+    if (city) setPickupLocation(city);
+    if (pickup) setPickupDate(pickup);
+    if (ret) setReturnDate(ret);
+    // If no city, fetch all cars
+    fetchCars(city || '', `${pickup || pickupDate}T10:00:00`, `${ret || returnDate}T18:00:00`);
+    // eslint-disable-next-line
+  }, []);
+
+  // Search form submit
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    // Update the URL with search params
+    const params = new URLSearchParams({
+      city: pickupLocation,
+      pickupDate,
+      returnDate,
+    });
+    navigate(`?${params.toString()}`, { replace: true });
+    fetchCars(pickupLocation, `${pickupDate}T10:00:00`, `${returnDate}T18:00:00`);
+  };
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -159,13 +210,6 @@ const CarRentalPlatform = () => {
 
   const groupedCars = groupCarsByCompany(filteredCars);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg text-gray-700">Loading data, please wait...</p>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -176,9 +220,53 @@ const CarRentalPlatform = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100">
+    <div className="min-h-screen p-4 bg-gradient-to-br from-red-50 to-pink-100">
       <Navbar />
-      <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Search Form */}
+      <form onSubmit={handleSearch} className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row gap-4 items-end mt-4 mb-8 border border-gray-200">
+        <div className="flex-1">
+          <label className="block text-gray-700 text-sm font-semibold mb-2">Pick-up Location</label>
+          <div className="relative">
+            <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-red-500" />
+            <input
+              type="text"
+              className="pl-12 w-full p-3 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white border border-gray-200 text-gray-800"
+              placeholder="City, Airport, Address..."
+              value={pickupLocation}
+              onChange={(e) => setPickupLocation(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="flex-1">
+          <label className="block text-gray-700 text-sm font-semibold mb-2">Pick-up Date</label>
+          <div className="relative">
+            <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-red-500" />
+            <input
+              type="date"
+              className="pl-12 w-full p-3 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white border border-gray-200 text-gray-800"
+              value={pickupDate}
+              onChange={(e) => setPickupDate(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="flex-1">
+          <label className="block text-gray-700 text-sm font-semibold mb-2">Return Date</label>
+          <div className="relative">
+            <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-red-500" />
+            <input
+              type="date"
+              className="pl-12 w-full p-3 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white border border-gray-200 text-gray-800"
+              value={returnDate}
+              onChange={(e) => setReturnDate(e.target.value)}
+            />
+          </div>
+        </div>
+        <button type="submit" className="bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl px-8 py-3 font-semibold flex items-center gap-2 shadow-lg hover:from-red-700 hover:to-pink-700 transition-all duration-300">
+          <Search className="h-5 w-5" />
+          Search
+        </button>
+      </form>
+      <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
         {selectedCar ? (    
           <BookCarForm
             car={selectedCar}

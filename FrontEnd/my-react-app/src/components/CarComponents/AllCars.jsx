@@ -6,19 +6,17 @@ import { useBooking } from '../BookingCar/BookingContext';
 
 const AllCars = ({ cars, favorites, onToggleFavorite, onShowMobileFilters }) => {
   const { selectedCar, showBookingForm, handleBookNow, closeBookingForm } = useBooking();
-  // const [selectedCar, setSelectedCar] = useState(null);
-  // const [showBookingForm, setShowBookingForm] = useState(false);
+  const [showLicenseModal, setShowLicenseModal] = useState(false);
 
-  // const handleBookNow = (car) => {
-  //   setSelectedCar(car);
-  //   setShowBookingForm(true);
-  // };
-  
-
-  // const closeBookingForm = () => {
-  //   setSelectedCar(null);
-  //   setShowBookingForm(false);
-  // };
+  // Custom handler to check license status before booking
+  const handleBookNowWithCheck = (car) => {
+    const licenseStatus = localStorage.getItem('drivingLicenseStatus');
+    if (licenseStatus === 'PENDING') {
+      setShowLicenseModal(true);
+      return;
+    }
+    handleBookNow(car);
+  };
 
   return (
     <div className="flex-1">
@@ -45,8 +43,7 @@ const AllCars = ({ cars, favorites, onToggleFavorite, onShowMobileFilters }) => 
                 car={car}
                 favorites={favorites}
                 onToggleFavorite={onToggleFavorite}
-                onBookNow={() => handleBookNow(car)} 
-                
+                onBookNow={() => handleBookNowWithCheck(car)} 
               />
             </div>
           ))}
@@ -72,6 +69,24 @@ const AllCars = ({ cars, favorites, onToggleFavorite, onShowMobileFilters }) => 
           company={{ companyId: 'comp123' }} 
           onBack={closeBookingForm}
         />
+      )}
+
+      {/* License Restriction Modal */}
+      {showLicenseModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Booking Restricted</h2>
+            <p className="text-gray-700 mb-6">
+              You are not allowed to book a car until your driving license is verified.
+            </p>
+            <button
+              onClick={() => setShowLicenseModal(false)}
+              className="px-6 py-3 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-xl font-semibold hover:from-red-700 hover:to-orange-700 transition-all"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

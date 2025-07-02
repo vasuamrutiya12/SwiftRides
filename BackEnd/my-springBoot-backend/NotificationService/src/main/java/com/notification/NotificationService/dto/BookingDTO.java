@@ -10,7 +10,7 @@ public class BookingDTO {
     private int bookingId;
     private int customerId;
     private int carId;
-    private int companyId;
+    private int companyID;
     private LocalDate pickupDate;
     private LocalDate returnDate;
     private int totalDays;

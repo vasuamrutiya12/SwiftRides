@@ -1,17 +1,7 @@
 import React from 'react';
-import { Edit3, Trash2, Calendar, DollarSign, User, Phone, Mail, Car } from 'lucide-react';
+import { Edit3, Trash2, Calendar, IndianRupee, User, Phone, Mail, Car } from 'lucide-react';
 
 const BookingCard = ({ booking }) => {
-
-  const handleEdit = () => {
-    console.log('Edit booking:', booking.id);
-    // Add your edit logic here
-  };
-
-  const handleDelete = () => {
-    console.log('Delete booking:', booking.id);
-    // Add your delete logic here
-  };
 
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
@@ -22,9 +12,6 @@ const BookingCard = ({ booking }) => {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
     });
   };
   
@@ -55,9 +42,9 @@ const BookingCard = ({ booking }) => {
   const rentalDays = calculateDays(booking.pickupDate, booking.returnDate);
 
   return (
-    <div className="w-[450px] mx-auto bg-gradient-to-b from-white to-red-50 rounded-2xl shadow-xl overflow-hidden border border-red-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+    <div className="min-w-[350px] max-w-[450px] mx-auto bg-gradient-to-b from-white to-red-50 rounded-2xl shadow-xl overflow-hidden border border-red-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
       {/* Header with gradient */}
-      <div className=" px-3 bg-gradient-to-r from-red-400 to-red-300 py-2 relative overflow-hidden">
+      <div className=" px-3 bg-gradient-to-r from-red-400 to-red-500 py-2 relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="relative z-10">
           <div className="flex justify-between items-start">
@@ -127,40 +114,21 @@ const BookingCard = ({ booking }) => {
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-red-50 rounded-lg p-3 border border-red-100">
             <div className="flex items-center gap-2 mb-1">
-              <DollarSign className="w-4 h-4 text-red-500" />
+              <IndianRupee className="w-4 h-4 text-red-500" />
               <span className="text-xs font-medium text-red-700">Total Amount</span>
             </div>
-            <p className="text-lg font-bold text-red-600">${(booking.totalAmount || 0).toLocaleString()}</p>
+            <p className="text-lg font-bold text-red-600">₹{(booking.totalAmount || 0).toLocaleString()}</p>
           </div>
           <div className="bg-green-50 rounded-lg p-3 border border-green-200">
             <div className="flex items-center gap-2 mb-1">
-              <DollarSign className="w-4 h-4 text-green-500" />
+              <IndianRupee className="w-4 h-4 text-green-500" />
               <span className="text-xs font-medium text-green-700">Commission</span>
             </div>
-            <p className="text-lg font-bold text-green-600">${(booking.commission || 0).toLocaleString()}</p>
+            <p className="text-lg font-bold text-green-600">₹{(booking.commission || 0).toLocaleString()}</p>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="px-6 pb-6">
-        <div className="flex gap-3">
-          <button
-            onClick={handleEdit}
-            className="flex-1 bg-red-400 hover:bg-red-600 text-white py-2.5 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-          >
-            <Edit3 className="w-4 h-4" />
-            Edit
-          </button>   
-          <button
-            onClick={handleDelete}
-            className="flex-1 bg-red-200 hover:bg-red-400 text-red-700 hover:text-red-800 py-2.5 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2 border border-red-200 hover:border-red-300"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

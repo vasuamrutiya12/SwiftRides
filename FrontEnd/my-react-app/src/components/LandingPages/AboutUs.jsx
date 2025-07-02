@@ -2,8 +2,10 @@ import React from 'react';
 import { Car, Shield, DollarSign, Users, Award, Clock, MapPin, CreditCard } from 'lucide-react';
 import Footer from './Footer';
 import Navbar from './Navbar';
+import { useNavigate } from 'react-router-dom';
 
 const AboutUs = () => {
+  const navigate=useNavigate();
   const stats = [
     { number: '500+', label: 'Partner Companies', icon: Users },
     { number: '50,000+', label: 'Available Cars', icon: Car },
@@ -46,23 +48,20 @@ const AboutUs = () => {
 
   const team = [
     {
-      name: 'Sarah Chen',
-      role: 'CEO & Founder',
-      image: 'https://images.unsplash.com/photo-1494790108755-2616b332c371?w=400&h=400&fit=crop&crop=face',
-      description: 'Former automotive industry executive with 15+ years of experience in mobility solutions.'
+      name: 'Druman Kaneriya',
+      role: 'Full Stake Developer',
+      image: 'https://avatars.githubusercontent.com/u/116833054?v=4',
+      link: 'https://github.com/druman12',
+      description: 'A very knowledgeable person with extensive project experience, skilled in working with more than two technologies.'
     },
     {
-      name: 'Marcus Rodriguez',
-      role: 'CTO',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-      description: 'Tech visionary who built our AI-powered price comparison and matching algorithms.'
+      name: 'Vasu Amrutiya',
+      role: 'Full Stake Developer',
+      image: 'https://avatars.githubusercontent.com/u/175853748?v=4',
+      link: 'https://github.com/vasuamrutiya12',
+      description: 'A tech visionary who built our backend with proper security, ensuring seamless experiences and efficient, fast data manipulations.'
     },
-    {
-      name: 'Emily Watson',
-      role: 'Head of Partnerships',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-      description: 'Established relationships with 500+ rental companies worldwide, ensuring maximum coverage.'
-    }
+   
   ];
 
   return (
@@ -174,16 +173,20 @@ const AboutUs = () => {
       <div className="py-12 sm:py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">Meet Our Leadership</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">Meet Our Developers</h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
               The visionaries behind the world's most trusted car rental platform
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-12">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8 sm:gap-12">
             {team.map((member, index) => (
               <div key={index} className="text-center group">
                 <div className="relative mb-4 sm:mb-6">
-                  <div className="w-32 h-32 sm:w-48 sm:h-48 mx-auto rounded-full overflow-hidden ring-4 ring-white shadow-2xl group-hover:scale-105 transition-transform duration-300">
+                  <div 
+                    className="w-32 h-32 sm:w-48 sm:h-48 mx-auto rounded-full overflow-hidden ring-4 ring-white shadow-2xl group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                    onClick={() => window.open(member.link, '_blank')}
+                    title={`Visit ${member.name}'s GitHub profile`}
+                  >
                     <img 
                       src={member.image} 
                       alt={member.name}
@@ -236,7 +239,9 @@ const AboutUs = () => {
                 <p className="text-lg sm:text-xl text-blue-100 mb-6 sm:mb-8 px-2">
                   Join millions of satisfied customers who trust RentEasy for their car rental needs.
                 </p>
-                <button className="bg-white text-red-400 px-6 py-3 sm:px-8 sm:py-4 rounded-lg sm:rounded-xl font-semibold text-base sm:text-lg hover:bg-blue-50 transition-colors duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto">
+                <button
+                onClick={() => navigate("/login")}
+                className="bg-white text-red-400 px-6 py-3 sm:px-8 sm:py-4 rounded-lg sm:rounded-xl font-semibold text-base sm:text-lg hover:bg-blue-50 transition-colors duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto">
                   Start Your Journey
                 </button>
               </div>

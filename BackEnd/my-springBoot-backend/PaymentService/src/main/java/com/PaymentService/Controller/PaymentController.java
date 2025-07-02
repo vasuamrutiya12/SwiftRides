@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -128,6 +128,28 @@ public ResponseEntity<PaymentResponse> createPaymentSession(@RequestBody Payment
             return ResponseEntity.ok(totalAmount);
         } catch (Exception e) {
             log.error("Error getting total amount: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<Payment> getPaymentById(@PathVariable int id) {
+        try {
+            Payment payment = paymentService.getPaymentById(id);
+            return ResponseEntity.ok(payment);
+        } catch (Exception e) {
+            log.error("Error getting payment by ID: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/company/{companyId}")
+    public ResponseEntity<List<Payment>> getPaymentsByCompanyId(@PathVariable int companyId) {
+        try {
+            List<Payment> payments = paymentService.getPaymentsByCompanyId(companyId);
+            return ResponseEntity.ok(payments);
+        } catch (Exception e) {
+            log.error("Error getting payments by companyId: {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }

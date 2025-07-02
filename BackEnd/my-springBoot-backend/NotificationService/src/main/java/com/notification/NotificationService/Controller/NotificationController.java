@@ -2,6 +2,7 @@ package com.notification.NotificationService.Controller;
 
 import com.notification.NotificationService.Service.NotificationService;
 import com.notification.NotificationService.Service.OTPService;
+import com.notification.NotificationService.dto.QueryDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,11 @@ public class NotificationController {
         }
     }
 
-
+    @PostMapping("/send/answer")
+    public ResponseEntity<String> sendQueryAnswer(@RequestBody QueryDTO queryDTO) {
+        notificationService.sendQueryAnswer(queryDTO);
+        return ResponseEntity.ok("Query Responded send successfully");
+    }
 
     @PostMapping("/send-otp")
     public ResponseEntity<String> sendOTP(@RequestParam String email) {

@@ -31,6 +31,7 @@ public class SearchServiceImpl implements SearchService {
         List<RentalCompany> companies = resilientService.getAllCompanies();
 
         return cars.stream()
+                .filter(car -> car.getStatus() == null || !car.getStatus().equalsIgnoreCase("reject"))
                 .filter(car -> keyword == null || car.getMake().toLowerCase().contains(keyword.toLowerCase()) || car.getModel().toLowerCase().contains(keyword.toLowerCase()))
                 .filter(car -> category == null || car.getCategory().equalsIgnoreCase(category))
                 .filter(car -> maxRate == null || car.getDailyRate() <= maxRate)

@@ -11,30 +11,72 @@ import {
   X,
   DollarSign,
   Dock,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState, useRef } from "react";
 
 // Car Card Component
 const CarCard = ({ car, onToggleFavorite, onBookNow }) => {
   const formatPrice = (price) => {
     return `₹${price.toLocaleString()}`;
   };
-  const navigate=useNavigate()
+  const navigate = useNavigate();
 
-  const handleViewCar= (car)=>{
-      navigate("/car/cardetails",
-       { state: { car } }
-      )
-  }
+  // Carousel state
+  const [imgIndex, setImgIndex] = useState(0);
+  const intervalRef = useRef(null);
+
+  const handleViewCar = (car) => {
+    navigate("/car/cardetails", { state: { car } });
+  };
+
+  // Carousel handlers
+  const handleMouseEnter = () => {
+    if (car.imageUrls.length > 1) {
+      intervalRef.current = setInterval(() => {
+        setImgIndex((prev) => (prev + 1) % car.imageUrls.length);
+      }, 1000);
+    }
+  };
+  const handleMouseLeave = () => {
+    clearInterval(intervalRef.current);
+    setImgIndex(0);
+  };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-gray-100">
+    <div
+      className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-gray-100"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div className="relative">
         <img
-          src={car.imageUrls[0]}
+          src={car.imageUrls[imgIndex]}
           alt={`${car.make} ${car.model}`}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          className="p-2 w-full h-50 object-contain bg-white group-hover:scale-105 transition-transform duration-300"
         />
+        {/* Left Arrow */}
+        {car.imageUrls.length > 1 && (
+          <button
+            onClick={e => { e.stopPropagation(); setImgIndex((prev) => (prev - 1 + car.imageUrls.length) % car.imageUrls.length); }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            tabIndex={-1}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
+        {/* Right Arrow */}
+        {car.imageUrls.length > 1 && (
+          <button
+            onClick={e => { e.stopPropagation(); setImgIndex((prev) => (prev + 1) % car.imageUrls.length); }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            tabIndex={-1}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
         <button
           onClick={() => onToggleFavorite(car.carId)}
           className="absolute top-3 right-3 p-2 bg-white bg-opacity-90 rounded-full hover:bg-opacity-100 transition-all"
