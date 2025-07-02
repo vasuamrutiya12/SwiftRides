@@ -16,15 +16,27 @@ const Navbar = () => {
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("email")
+    localStorage.clear();
     setIsLoggedIn(false)
     setIsProfileDropdownOpen(false)
-    navigate("/login")
+    navigate("/")
   }
 
   const handleProfileClick = () => {
-    navigate("/customer-dashboard")
+    const role = localStorage.getItem("role")
+    switch(role) {
+      case "CUSTOMER":
+        navigate("/customer-dashboard")
+        break
+      case "RENTAL_COMPANY":
+        navigate("/dashboard")
+        break
+      case "ADMIN":
+        navigate("/admin/dashboard")
+        break
+      default:
+        navigate("/pagenotfound")
+    }
     setIsProfileDropdownOpen(false)
   }
 
@@ -70,7 +82,7 @@ const Navbar = () => {
                     <Car className="h-6 w-6 text-white" />
                   </div>
                   <span className="text-2xl font-bold bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
-                    DrivEasy
+                    SwiftRides
                   </span>
                 </div>
 
@@ -109,47 +121,15 @@ const Navbar = () => {
                 {/* Desktop Auth Section */}
                 <div className="hidden lg:flex items-center space-x-4">
                   {isLoggedIn ? (
-                    <div className="relative">
-                      <button
-                        onClick={toggleProfileDropdown}
-                        className="profile-button flex items-center space-x-2 p-2 rounded-xl bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 transition-all duration-200 border border-red-200/50"
-                      >
-                        <div className="p-1 bg-gradient-to-br from-red-500 to-red-600 rounded-lg">
-                          <UserCircle className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="text-red-700 font-medium">Profile</span>
-                      </button>
-
-                      {/* Profile Dropdown */}
-                      {isProfileDropdownOpen && (
-                        <div className="profile-dropdown absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-red-100/50 py-2">
-                          <button
-                            onClick={handleProfileClick}
-                            className="w-full px-4 py-2 text-left text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200 flex items-center space-x-2"
-                          >
-                            <User className="w-4 h-4" />
-                            <span>Dashboard</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              /* Add settings handler */
-                            }}
-                            className="w-full px-4 py-2 text-left text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200 flex items-center space-x-2"
-                          >
-                            <Settings className="w-4 h-4" />
-                            <span>Settings</span>
-                          </button>
-                          <hr className="my-2 border-red-100" />
-                          <button
-                            onClick={handleLogout}
-                            className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors duration-200 flex items-center space-x-2"
-                          >
-                            <LogOut className="w-4 h-4" />
-                            <span>Logout</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <button
+                      onClick={handleProfileClick}
+                      className="flex items-center space-x-2 p-2 rounded-xl bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 transition-all duration-200 border border-red-200/50"
+                    >
+                      <div className="p-1 bg-gradient-to-br from-red-500 to-red-600 rounded-lg">
+                        <UserCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-red-700 font-medium">Dashboard</span>
+                    </button>
                   ) : (
                     <div className="flex items-center space-x-3">
                       <button

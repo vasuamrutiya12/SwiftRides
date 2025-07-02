@@ -1,8 +1,8 @@
 package com.CarService.Entity;
 
-import com.CarService.dto.ReviewDto;
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,13 +57,14 @@ import java.util.List;
         private List<String> imageUrls;
 
         @Column(name = "status", length = 50, nullable = false)
-        private String status = "available";
+        private String status = "PENDING";
 
         @Column(name = "created_at", nullable = false, updatable = false)
         private LocalDateTime createdAt = LocalDateTime.now();
 
-        @Embedded
-        private CarReview carReview;
+        @Column(name = "rcbook")
+        @JsonProperty("rcbook")
+        private String RCbook;
 
 
     }

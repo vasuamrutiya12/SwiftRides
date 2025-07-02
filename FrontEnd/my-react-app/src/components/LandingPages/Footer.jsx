@@ -1,10 +1,11 @@
 import { Car } from 'lucide-react';
+import { Link } from 'react-router-dom'; // Import Link from React Router
+import { HashLink } from 'react-router-hash-link';
 
-const Footer = () =>  {
-
-    return (
-      <div>
-        <footer className="bg-gray-800 text-gray-300 py-12">
+const Footer = () => {
+  return (
+    <div>
+      <footer className="bg-gray-800 text-gray-300 py-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
@@ -38,22 +39,20 @@ const Footer = () =>  {
             <div>
               <h4 className="text-white text-lg font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="hover:text-blue-400 transition">Home</a></li>
-                <li><a href="#" className="hover:text-blue-400 transition">About Us</a></li>
-                <li><a href="#" className="hover:text-blue-400 transition">Services</a></li>
-                <li><a href="#" className="hover:text-blue-400 transition">Fleet</a></li>
-                <li><a href="#" className="hover:text-blue-400 transition">Contact</a></li>
+                <li><Link to="/" className="hover:text-blue-400 transition">Home</Link></li>
+                <li><Link to="/about-us" className="hover:text-blue-400 transition">About Us</Link></li>
+                <li><Link to="/cars" className="hover:text-blue-400 transition">Cars</Link></li>
+                <li><Link to="/contact-us" className="hover:text-blue-400 transition">Contact</Link></li>
               </ul>
             </div>
             
             <div>
               <h4 className="text-white text-lg font-semibold mb-4">Support</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="hover:text-blue-400 transition">FAQs</a></li>
-                <li><a href="#" className="hover:text-blue-400 transition">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-blue-400 transition">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-blue-400 transition">Cancellation Policy</a></li>
-                <li><a href="#" className="hover:text-blue-400 transition">Customer Support</a></li>
+                <li><HashLink to="contact-us/#faq-section" smooth className="hover:text-blue-400 transition">FAQs</HashLink></li>
+                <li><Link to="/support/term-conditions-policy" className="hover:text-blue-400 transition">Terms of Service</Link></li>
+                <li><Link to="/support/term-conditions-policy" className="hover:text-blue-400 transition">Cancellation Policy</Link></li>
+                <li><Link to="contact-us/#query-form" className="hover:text-blue-400 transition">Customer Support</Link></li>
               </ul>
             </div>
             
@@ -74,8 +73,8 @@ const Footer = () =>  {
           </div>
         </div>
       </footer>
-      </div>
-    )
-  }
+    </div>
+  );
+};
 
-export default Footer
+export default Footer;

@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { X, Eye, Check, Trash2, User, Phone, MapPin, CreditCard } from "lucide-react"
+import userImg from "../../../images/userImg.png"
+import { useLoading } from "../../Loader/LoadingProvider"
 
 const VerificationModal = ({
   customer,
@@ -11,32 +13,57 @@ const VerificationModal = ({
   const [isApproving, setIsApproving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const token = localStorage.getItem("token")
+  const { showLoader, hideLoader } = useLoading()
 
   const handleApprove = async () => {
     setIsApproving(true)
-      // API call to approve customer
-    //   const response = await fetch("/api/customers/approve", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       customerId: customer.customerId,
-    //       status: "approved",
-    //     }),
-    //   })
-        onApprove(customer.customerId)
-        onClose()
+    showLoader("Approving Customer...")
+    onApprove(customer.customerId)
+    onClose()
+    hideLoader()
   }
 
   const handleDelete = async () => {
     setIsDeleting(true);
+    showLoader("Blocking Customer...")
     try {
-      const response = await fetch(`http://localhost:9090/api/customers/${customer.customerId}`, {
-        method: "DELETE",
+      const response = await fetch(`http://localhost:9090/api/customers/block/${customer.customerId}`, {
+        method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json"
+        },
+        body:{
+          drivingLicenseStatus:"rejected"
+        }
+      });
+      if (response.ok) {
+        onClose();
+      } else {
+        // Optionally handle error
+        alert("Failed to block customer.");
+      }
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+      alert("Error blocking customer.");
+    } finally {
+      setIsDeleting(false);
+      hideLoader()
+      window.location.reload()
+    }
+  };
+  const handleUnblock = async () => {
+    setIsDeleting(true);
+    showLoader("Blocking Customer...")
+    try {
+      const response = await fetch(`http://localhost:9090/api/customers/block/${customer.customerId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body:{
+          drivingLicenseStatus:"verified"
         }
       });
       if (response.ok) {
@@ -44,15 +71,17 @@ const VerificationModal = ({
         onClose();
       } else {
         // Optionally handle error
-        alert("Failed to delete customer.");
+        alert("Failed to block customer.");
       }
     } catch (error) {
       console.error("Error deleting customer:", error);
-      alert("Error deleting customer.");
+      alert("Error blocking customer.");
     } finally {
       setIsDeleting(false);
+      hideLoader()
     }
   };
+
 
   if (!isOpen) return null
 
@@ -98,17 +127,38 @@ const VerificationModal = ({
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-3">Driving License</h3>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-              <img
-                src={customer.drivinglicenseimage}
-                alt="Driving License"
-                className="w-full max-w-md mx-auto rounded-lg shadow-md"
-              />
+              {customer.drivingLicenseImg ? (
+                <img
+                  src={customer.drivingLicenseImg}
+                  alt="Driving License"
+                  className="w-full max-w-md mx-auto rounded-lg shadow-md"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CreditCard className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-sm">No license image uploaded</p>
+                </div>
+              )}
+              {customer.drivingLicenseImg && (
+                <div className="text-center py-8 hidden">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CreditCard className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-sm">Failed to load license image</p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
-            {customer.verificationstatus !== "approved" ? (
+            {customer.drivingLicenseStatus !== "verified" ? (
               <>
                 <button
                   onClick={handleApprove}
@@ -118,14 +168,7 @@ const VerificationModal = ({
                   <Check className="w-5 h-5" />
                   {isApproving ? "Approving..." : "Approve Customer"}
                 </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-5 h-5" />
-                  {isDeleting ? "Deleting..." : "Delete Customer"}
-                </button>
+                
               </>
             ) : (
               <button
@@ -134,7 +177,7 @@ const VerificationModal = ({
                 className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-5 h-5" />
-                {isDeleting ? "Removing..." : "Remove Customer"}
+                {isDeleting ? "Blocking..." : "Block Customer"}
               </button>
             )}
           </div>
@@ -144,12 +187,12 @@ const VerificationModal = ({
   )
 }
 
-const CustomerCard = ({ customer, onApprove = () => {}, onDelete = () => {} }) => {
+const CustomerCard = ({ customer, onApprove = () => {}}) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const getStatusColor = (status) => {
     switch ((status || "").toLowerCase()) {
-      case "approved":
+      case "verified":
         return "bg-green-100 text-green-800 border-green-200"
       case "pending":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
@@ -163,7 +206,7 @@ const CustomerCard = ({ customer, onApprove = () => {}, onDelete = () => {} }) =
   return (
     <>
       <div
-        className="w-[450px] bg-gradient-to-b from-white to-red-50 border-2 border-red-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:border-red-300 hover:-translate-y-1 text-xl"
+        className="w-[420px] bg-gradient-to-b from-white to-red-50 border-2 border-red-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:border-red-300 hover:-translate-y-1 text-xl"
         onClick={() => setIsModalOpen(true)}
       >
         {/* Header */}
@@ -171,7 +214,11 @@ const CustomerCard = ({ customer, onApprove = () => {}, onDelete = () => {} }) =
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <User className="w-6 h-6" />
+                <img
+                src={userImg}
+                alt={customer.fullname || 'Customer'}
+                className="w-12 h-12 rounded-full object-cover ring-2 ring-red-200 shadow-md"
+                />
               </div>
               <div>
                 <h3 className=" font-bold">{customer.fullName}</h3>
@@ -179,9 +226,9 @@ const CustomerCard = ({ customer, onApprove = () => {}, onDelete = () => {} }) =
               </div>
             </div>
             <div
-              className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(customer.verificationstatus)}`}
+              className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(customer.drivingLicenseStatus)}`}
             >
-              {customer.verificationstatus?.charAt(0).toUpperCase() + customer.verificationstatus?.slice(1)}
+              {customer.drivingLicenseStatus?.charAt(0).toUpperCase() + customer.drivingLicenseStatus?.slice(1) || "Pending"}
             </div>
           </div>
         </div>
@@ -210,6 +257,12 @@ const CustomerCard = ({ customer, onApprove = () => {}, onDelete = () => {} }) =
           <div className="flex items-center gap-3 text-gray-700">
             <CreditCard className="w-4 h-4 text-red-500" />
             <span>{customer.drivingLicenseNumber}</span>
+            {customer.drivingLicenseImg && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                License Image
+              </span>
+            )}
           </div>
         </div>
 
@@ -227,7 +280,6 @@ const CustomerCard = ({ customer, onApprove = () => {}, onDelete = () => {} }) =
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onApprove={onApprove}
-        onDelete={onDelete}
       />
     </>
   )

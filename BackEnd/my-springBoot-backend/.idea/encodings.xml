@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/ApiGateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/BookingService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/CarService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ConfigServer/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/CustomerService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/InventoryService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/NotificationService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/PaymentService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/RentalCompaniesService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ReviewService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SearchService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ServiceRegistry/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/UserService/src/main/java" charset="UTF-8" />
+  </component>
+</project>

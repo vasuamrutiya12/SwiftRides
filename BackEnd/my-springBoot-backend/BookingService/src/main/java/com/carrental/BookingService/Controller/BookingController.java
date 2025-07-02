@@ -94,5 +94,7 @@ public class BookingController {
         Double totalRevenue = bookingService.getTotalRevenue();
         return ResponseEntity.ok(totalRevenue);
     }
+
+
 }
 

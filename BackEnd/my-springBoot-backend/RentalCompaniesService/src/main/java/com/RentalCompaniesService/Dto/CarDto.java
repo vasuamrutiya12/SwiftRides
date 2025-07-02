@@ -1,5 +1,6 @@
 package com.RentalCompaniesService.Dto;
 
+import jakarta.persistence.Column;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -22,7 +23,8 @@ public class CarDto {
     private int seatingCapacity;
     private List<String> features;
     private List<String> imageUrls;
-    private Long rating;
-
+    private String status;
+    private String RCbook;
+    private LocalDateTime createdAt;
 }
 

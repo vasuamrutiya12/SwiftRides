@@ -1,15 +1,14 @@
 package com.CarService.Service;
 
 import com.CarService.Entity.Car;
-import com.CarService.Entity.CarReview;
 import com.CarService.Repository.CarRepository;
-import com.CarService.dto.ReviewDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CarServiceImpl implements CarService {
@@ -35,10 +34,34 @@ public class CarServiceImpl implements CarService {
         return carRepository.findByCompanyId(companyId);
     }
 
+    @Override
+    public List<Car> getValidCarByCompanyId(int companyId) {
+        List<Car> cars= carRepository.findByCompanyId(companyId);
+        return cars.stream()
+                .filter(car -> !"PENDING".equalsIgnoreCase(car.getStatus()))
+                .collect(Collectors.toList());
+
+    }
+
 
     @Override
     public Car addCar(Car car) {
-        return carRepository.save(car);
+        System.out.println("=== DEBUG: Adding car ===");
+        System.out.println("Car ID: " + car.getCarId());
+        System.out.println("Make: " + car.getMake());
+        System.out.println("Model: " + car.getModel());
+        System.out.println("RCbook: " + car.getRCbook());
+        System.out.println("All car fields: " + car.toString());
+        System.out.println("=========================");
+        
+        Car savedCar = carRepository.save(car);
+        
+        System.out.println("=== DEBUG: Saved car ===");
+        System.out.println("Saved Car ID: " + savedCar.getCarId());
+        System.out.println("Saved RCbook: " + savedCar.getRCbook());
+        System.out.println("=========================");
+        
+        return savedCar;
     }
 
     @Override
@@ -52,7 +75,7 @@ public class CarServiceImpl implements CarService {
 
         car.setCompanyId(companyId);
         car.setCreatedAt(LocalDateTime.now());
-        car.setStatus("available");
+        car.setStatus("PENDING");
 
         return carRepository.save(car);
     }
@@ -94,6 +117,9 @@ public class CarServiceImpl implements CarService {
             if (carDetails.getStatus() != null && !carDetails.getStatus().isEmpty()) {
                 car.setStatus(carDetails.getStatus());
             }
+            if (carDetails.getRCbook() != null && !carDetails.getRCbook().isEmpty()) {
+                car.setRCbook(carDetails.getRCbook());
+            }
 
             return carRepository.save(car);
         }).orElseThrow(() -> new RuntimeException("Car not found with id " + id));
@@ -117,40 +143,8 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public Car updateCarRating(Integer carId, ReviewDto reviewDto) {
-        Car car = carRepository.findById(carId)
-                .orElseThrow(() -> new RuntimeException("Car not found with id: " + carId));
-
-        CarReview carReview = car.getCarReview();
-        if (carReview == null) {
-            carReview = new CarReview();
-            car.setCarReview(carReview);
-        }
-
-        // Initialize lists if null
-        if (carReview.getComments() == null) {
-            carReview.setComments(new ArrayList<>());
-        }
-        if (carReview.getRating() == null) {
-            carReview.setRating(new ArrayList<>());
-        }
-        if (carReview.getReviewIds() == null) {
-            carReview.setReviewIds(new ArrayList<>());
-        }
-
-        // Append the new review
-        carReview.getComments().add(reviewDto.getComment());
-        carReview.getRating().add(reviewDto.getRating());
-        carReview.getReviewIds().add(System.currentTimeMillis()); // Or use proper review ID
-
-        System.out.println("New Rating: " + reviewDto.getRating() + ", Comment: " + reviewDto.getComment());
-        return carRepository.save(car);
-    }
-
-
-    @Override
     public ResponseEntity<Integer> getCarsCountByCompanyId(Integer companyId) {
-        long count = carRepository.count();
+        long count = carRepository.countByCompanyId(companyId);
         return ResponseEntity.ok((int) count);
     }
 
@@ -159,38 +153,10 @@ public class CarServiceImpl implements CarService {
         return carRepository.countByStatus(status);
     }
 
-    @Override
-    public long getReviewsCount() {
-        List<Car> cars = carRepository.findAll();
-        long totalComments = 0;
-
-        for (Car car : cars) {
-            if (car.getCarReview() != null && car.getCarReview().getComments() != null) {
-                totalComments += car.getCarReview().getComments().size();
-            }
-        }
-
-        return totalComments;
-    }
 
 
-    @Override
-    public double getReviewsAvg(Integer companyId) {
-        List<Car> cars = getCarByCompanyId(companyId);
 
-        // Flatten all ratings from all cars into a single stream
-        DoubleSummaryStatistics stats = cars.stream()
-                .map(Car::getCarReview)
-                .filter(Objects::nonNull)
-                .map(CarReview::getRating)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .mapToDouble(Double::doubleValue)
-                .summaryStatistics();
 
-        // Returning average as a rounded long
-        return stats.getAverage();
-    }
 
 
 }

@@ -3,6 +3,7 @@ package com.CustomerService.controller;
 import com.CustomerService.dto.BookingRequestDto;
 import com.CustomerService.dto.CarDto;
 import com.CustomerService.dto.ReviewDto;
+import com.CustomerService.dto.StatusUpdateDto;
 import com.CustomerService.model.Customer;
 import com.CustomerService.service.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/customers")
@@ -40,9 +42,9 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.updateCustomer(id, customer));
     }
 
-    @DeleteMapping("/{id}")
+    @PutMapping("block/{id}")
     public ResponseEntity<Void> deleteCustomer(@PathVariable Integer id) {
-        customerService.deleteCustomer(id);
+        customerService.blockCustomer(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -70,10 +72,26 @@ public class CustomerController {
         return customerService.getCustomerWithReviews(customerId);
     }
 
+    @PutMapping("/{customerId}/drivingLicenseImage")
+    public ResponseEntity<Customer> updateDrivingLicenseImage(
+            @PathVariable Integer customerId,
+            @RequestBody String imageUrl) {
+        Customer updatedCustomer = customerService.updateDrivingLicenseImage(customerId, imageUrl);
+        return ResponseEntity.ok(updatedCustomer);
+    }
+
     @GetMapping("/total")
     public ResponseEntity<Long> getTotalCustomers() {
         Long total = customerService.getTotalCustomers();
         return ResponseEntity.ok(total);
+    }
+
+    @PutMapping("/{customerId}/status")
+    public ResponseEntity<Customer> updateCustomerStatus(
+            @PathVariable Integer customerId,
+            @RequestBody StatusUpdateDto statusUpdate) {
+        Customer updatedCustomer = customerService.updateCustomerStatus(customerId, statusUpdate.getStatus());
+        return ResponseEntity.ok(updatedCustomer);
     }
 
 }

@@ -1,18 +1,18 @@
-import { DollarSign, CheckCircle, Clock, XCircle, Ban } from "lucide-react"
+import { IndianRupee, CheckCircle, Clock, XCircle, Ban } from "lucide-react"
 
-export default function PaymentStats({ payments }) {
+export default function PaymentStats({ payments = [] }) {
   const stats = {
-    completed: payments.filter((p) => p.status === "completed"),
-    pending: payments.filter((p) => p.status === "pending"),
-    failed: payments.filter((p) => p.status === "failed"),
-    cancelled: payments.filter((p) => p.status === "cancelled"),
+    completed: payments.filter((p) => p.status?.toLowerCase() === "completed"),
+    pending: payments.filter((p) => p.status?.toLowerCase() === "pending"),
+    failed: payments.filter((p) => p.status?.toLowerCase() === "failed"),
+    cancelled: payments.filter((p) => p.status?.toLowerCase() === "cancelled"),
   }
 
   const totals = {
-    completed: stats.completed.reduce((sum, p) => sum + p.amount, 0),
-    pending: stats.pending.reduce((sum, p) => sum + p.amount, 0),
-    failed: stats.failed.reduce((sum, p) => sum + p.amount, 0),
-    cancelled: stats.cancelled.reduce((sum, p) => sum + p.amount, 0),
+    completed: stats.completed.reduce((sum, p) => sum + Number(p.amount), 0),
+    pending: stats.pending.reduce((sum, p) => sum + Number(p.amount), 0),
+    failed: stats.failed.reduce((sum, p) => sum + Number(p.amount), 0),
+    cancelled: stats.cancelled.reduce((sum, p) => sum + Number(p.amount), 0),
   }
 
   const statCards = [
@@ -62,10 +62,10 @@ export default function PaymentStats({ payments }) {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Total Revenue</h3>
-            <p className="text-3xl font-bold text-red-600">${totalAmount.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-red-600">₹ {totalAmount.toLocaleString()}</p>
           </div>
           <div className="p-3 bg-red-100 rounded-full">
-            <DollarSign className="h-8 w-8 text-red-600" />
+            <IndianRupee className="h-8 w-8 text-red-600" />
           </div>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function PaymentStats({ payments }) {
                 <Icon className={`h-5 w-5 ${stat.textColor}`} />
               </div>
               <div className="space-y-1">
-                <p className={`text-2xl font-bold ${stat.textColor}`}>${stat.amount.toLocaleString()}</p>
+                <p className={`text-2xl font-bold ${stat.textColor}`}>₹{stat.amount.toLocaleString()}</p>
                 <p className="text-sm text-gray-600">
                   {stat.count} transaction{stat.count !== 1 ? "s" : ""}
                 </p>

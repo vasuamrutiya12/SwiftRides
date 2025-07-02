@@ -1,224 +1,70 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import SearchFilter from "../SearchFilter"
 import PaymentCard from "./PaymentCard"
 import PaymentStats from "./PaymentStats"
 import Navbar from "../Navbar"
 import ItemsPerPageSelector from "../Booking/ItemsPerPageSelector"
 import Pagination from "../Booking/Pagination"
+import { useLoading } from "../../Loader/LoadingProvider"
 
 export default function Payments() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
+  const [payments, setPayments] = useState([])
+  const [error, setError] = useState(null)
+  const { showLoader, hideLoader, isLoading } = useLoading()
 
-  const payments = [
-    {
-      id: 1,
-      customerName: "John Doe",
-      carName: "BMW X5",
-      amount: 2250,
-      status: "completed",
-      date: "2024-01-15",
-      paymentMethod: "Credit Card",
-      transactionId: "TXN001",
-    },
-    {
-      id: 2,
-      customerName: "Jane Smith",
-      carName: "Mercedes C-Class",
-      amount: 760,
-      status: "pending",
-      date: "2024-01-12",
-      paymentMethod: "PayPal",
-      transactionId: "TXN002",
-    },
-    {
-      id: 3,
-      customerName: "Mike Johnson",
-      carName: "Audi Q7",
-      amount: 2600,
-      status: "failed",
-      date: "2024-01-10",
-      paymentMethod: "Bank Transfer",
-      transactionId: "TXN003",
-    },
-    {
-      id: 4,
-      customerName: "Sarah Wilson",
-      carName: "Tesla Model 3",
-      amount: 1800,
-      status: "cancelled",
-      date: "2024-01-08",
-      paymentMethod: "Credit Card",
-      transactionId: "TXN004",
-    },
-    {
-      id: 5,
-      customerName: "John Doe",
-      carName: "BMW X5",
-      amount: 2250,
-      status: "completed",
-      date: "2024-01-15",
-      paymentMethod: "Credit Card",
-      transactionId: "TXN001",
-    },
-    {
-      id: 25,
-      customerName: "Jane Smith",
-      carName: "Mercedes C-Class",
-      amount: 760,
-      status: "pending",
-      date: "2024-01-12",
-      paymentMethod: "PayPal",
-      transactionId: "TXN002",
-    },
-    {
-      id: 35,
-      customerName: "Mike Johnson",
-      carName: "Audi Q7",
-      amount: 2600,
-      status: "failed",
-      date: "2024-01-10",
-      paymentMethod: "Bank Transfer",
-      transactionId: "TXN003",
-    },
-    {
-      id: 44,
-      customerName: "Sarah Wilson",
-      carName: "Tesla Model 3",
-      amount: 1800,
-      status: "cancelled",
-      date: "2024-01-08",
-      paymentMethod: "Credit Card",
-      transactionId: "TXN004",
-    },
-    {
-      id: 14,
-      customerName: "John Doe",
-      carName: "BMW X5",
-      amount: 2250,
-      status: "completed",
-      date: "2024-01-15",
-      paymentMethod: "Credit Card",
-      transactionId: "TXN001",
-    },
-    {
-      id: 72,
-      customerName: "Jane Smith",
-      carName: "Mercedes C-Class",
-      amount: 760,
-      status: "pending",
-      date: "2024-01-12",
-      paymentMethod: "PayPal",
-      transactionId: "TXN002",
-    },
-    
-    {
-      id: 74,
-      customerName: "Sarah Wilson",
-      carName: "Tesla Model 3",
-      amount: 1800,
-      status: "cancelled",
-      date: "2024-01-08",
-      paymentMethod: "Credit Card",
-      transactionId: "TXN004",
-    },
-    {
-      id: 71,
-      customerName: "John Doe",
-      carName: "BMW X5",
-      amount: 2250,
-      status: "completed",
-      date: "2024-01-15",
-      paymentMethod: "Credit Card",
-      transactionId: "TXN001",
-    },
-    {
-      id: 275,
-      customerName: "Jane Smith",
-      carName: "Mercedes C-Class",
-      amount: 760,
-      status: "pending",
-      date: "2024-01-12",
-      paymentMethod: "PayPal",
-      transactionId: "TXN002",
-    },
-    {
-      id: 543,
-      customerName: "Mike Johnson",
-      carName: "Audi Q7",
-      amount: 2600,
-      status: "failed",
-      date: "2024-01-10",
-      paymentMethod: "Bank Transfer",
-      transactionId: "TXN003",
-    },
-    {
-      id: 124,
-      customerName: "Sarah Wilson",
-      carName: "Tesla Model 3",
-      amount: 1800,
-      status: "cancelled",
-      date: "2024-01-08",
-      paymentMethod: "Credit Card",
-      transactionId: "TXN004",
-    },
-    {
-      id: 154,
-      customerName: "John Doe",
-      carName: "BMW X5",
-      amount: 2250,
-      status: "completed",
-      date: "2024-01-15",
-      paymentMethod: "Credit Card",
-      transactionId: "TXN001",
-    },
-    {
-      id: 257,
-      customerName: "Jane Smith",
-      carName: "Mercedes C-Class",
-      amount: 760,
-      status: "pending",
-      date: "2024-01-12",
-      paymentMethod: "PayPal",
-      transactionId: "TXN002",
-    },
-    {
-      id: 357,
-      customerName: "Mike Johnson",
-      carName: "Audi Q7",
-      amount: 2600,
-      status: "failed",
-      date: "2024-01-10",
-      paymentMethod: "Bank Transfer",
-      transactionId: "TXN003",
-    },
-    {
-      id: 422,
-      customerName: "Sarah Wilson",
-      carName: "Tesla Model 3",
-      amount: 1800,
-      status: "cancelled",
-      date: "2024-01-08",
-      paymentMethod: "Credit Card",
-      transactionId: "TXN004",
-    },
-  ]
+  useEffect(() => {
+    const fetchPayments = async () => {
+      showLoader("Loading Payments...")
+      setError(null)
+      try {
+        const token = localStorage.getItem("token")
+        const email = localStorage.getItem("email")
+        // 1. Get companyId from email
+        const resId = await fetch("http://localhost:8084/auth/user/email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ email }),
+        })
+        const companyId = await resId.json()
+        // 2. Get all payments for this company
+        const res = await fetch(`http://localhost:9090/api/payments/company/${companyId}`,
+          { headers: { Authorization: `Bearer ${token}` } })
+        if (!res.ok) throw new Error("Failed to fetch payments")
+        const paymentData = await res.json()
+        paymentData.forEach(payment => {
+          payment.amount = payment.amount*0.75
+        })
+        setPayments(paymentData)
+      } catch (err) {
+        setError(err)
+      } finally {
+        hideLoader()
+      }
+    }
+    fetchPayments()
+  }, [])
 
   const filterOptions = [
     { value: "all", label: "All Payments" },
-    { value: "completed", label: "Completed" },
-    { value: "pending", label: "Pending" },
-    { value: "failed", label: "Failed" },
-    { value: "cancelled", label: "Cancelled" },
+    { value: "COMPLETED", label: "Completed" },
+    { value: "PENDING", label: "Pending" },
+    { value: "FAILED", label: "Failed" },
+    { value: "CANCELLED", label: "Cancelled" },
   ]
 
   const filteredPayments = payments.filter((payment) => {
     const matchesSearch =
-      payment.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.carName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.transactionId.toLowerCase().includes(searchTerm.toLowerCase())
+      payment.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.stripeSessionId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.stripePaymentIntentId?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesFilter = filterStatus === "all" || payment.status === filterStatus
     return matchesSearch && matchesFilter
   })
@@ -228,7 +74,6 @@ export default function Payments() {
   const endIndex = startIndex + itemsPerPage
   const currentPayments = filteredPayments.slice(startIndex, endIndex)
 
-
   const handleItemsPerPageChange = (newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage)
     setCurrentPage(1)
@@ -236,7 +81,7 @@ export default function Payments() {
 
   return (
     <div className="space-y-6">
-        <Navbar />
+      <Navbar />
       <div className="flex items-center justify-between mx-5">
         <h1 className="text-3xl font-bold text-gray-900">Payment Management</h1>
         <div className="text-sm text-gray-500">Total Transactions: {payments.length}</div>
@@ -250,35 +95,43 @@ export default function Payments() {
         filterValue={filterStatus}
         setFilterValue={setFilterStatus}
         filterOptions={filterOptions}
-        placeholder="Search by customer, car, or transaction ID..."
+        placeholder="Search by customer, description, or transaction ID..."
       />
       <ItemsPerPageSelector
-          itemsPerPage={itemsPerPage}
-          onItemsPerPageChange={handleItemsPerPageChange}
-        />
-         {currentPayments.length === 0 ? (
-                  <div className="text-center py-12 mx-5">
-                    <div className="text-gray-500 text-lg">
-                      {filteredPayments.length === 0 ? "No payment found matching your criteria" : "Loading..."}
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mx-5">
-                      {currentPayments.map((payment) => (
-                         <PaymentCard key={payment.id} payment={payment} />
-                      ))}
-                    </div>
-        
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={setCurrentPage}
-                      totalItems={filteredPayments.length}
-                      itemsPerPage={itemsPerPage}
-                    />
-                  </>
-                )}
-              </div>
-          )
-        }
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={handleItemsPerPageChange}
+      />
+      {isLoading ? (
+        <div className="text-center py-12 mx-5">
+          <div className="text-gray-500 text-lg">Loading...</div>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12 mx-5">
+          <div className="text-red-500 text-lg">Error loading payments: {error.message}</div>
+        </div>
+      ) : currentPayments.length === 0 ? (
+        <div className="text-center py-12 mx-5">
+          <div className="text-gray-500 text-lg">
+            {filteredPayments.length === 0 ? "No payment found matching your criteria" : "Loading..."}
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mx-5">
+            {currentPayments.map((payment) => (
+              <PaymentCard key={payment.id} payment={payment} />
+            ))}
+          </div>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filteredPayments.length}
+            itemsPerPage={itemsPerPage}
+          />
+        </>
+      )}
+    </div>
+  )
+}

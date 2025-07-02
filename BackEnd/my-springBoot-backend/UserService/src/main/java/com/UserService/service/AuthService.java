@@ -29,62 +29,11 @@ public class AuthService {
     @Autowired
     private CustomerClient customerClient;
     @Autowired
-    private TemporaryRegistrationStorage temporaryStorage;
+    private TemporaryRegistrationStorage    temporaryStorage;
     @Autowired
     private NotificationClient notificationClient;
 
 
-//    public ResponseEntity<String> registerUser(UserRegistrationRequest request) {
-//        UserDto userDto = request.getUser();
-//        RentalCompanyDto rentalCompanyDto = request.getRentalCompany();
-//        CustomerDto customerDto = request.getCustomer();
-//
-//        // Check if email already exists
-//        if (repository.existsByEmail(userDto.getEmail())) {
-//            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
-//        }
-//
-//        // Save User
-//        User user = User.builder()
-//                .name(userDto.getName())
-//                .email(userDto.getEmail())
-//                .password(passwordEncoder.encode(userDto.getPassword()))
-//                .role(userDto.getRole())
-//                .build();
-//
-//        repository.save(user);
-//
-//        // Role-based handling
-//        if (user.getRole() == Role.RENTAL_COMPANY) {
-//            if (rentalCompanyDto != null) {
-//                rentalCompanyDto.setUserId(user.getId());
-//                rentalCompanyDto.setCompanyId(user.getId());
-//
-//                try {
-//                    rentalCompanyClient.registerRentalCompany(rentalCompanyDto);
-//                } catch (Exception e) {
-//                    System.err.println("Failed to register rental company: " + e.getMessage());
-//                }
-//            }else {
-//                System.err.println("RentalCompanyDto is null for RENTAL_COMPANY role");
-//            }
-//        } else if (user.getRole() == Role.CUSTOMER) {
-//            if (customerDto != null) {
-//                customerDto.setUserId(user.getId());
-//                customerDto.setCustomerId(user.getId());
-//
-//                try {
-//                    customerClient.registercustomer(customerDto);
-//                } catch (Exception e) {
-//                    System.err.println("Failed to register customer: " + e.getMessage());
-//                }
-//            } else {
-//                System.err.println("CustomerDto is null for CUSTOMER role");
-//            }
-//        }
-//
-//        return ResponseEntity.ok("User registered successfully");
-//    }
 public ResponseEntity<String> initiateUserRegistration(UserRegistrationRequest request) {
     UserDto userDto = request.getUser();
 
@@ -223,6 +172,36 @@ public ResponseEntity<String> initiateUserRegistration(UserRegistrationRequest r
         return repository.findByEmail(email)
                 .map(User::getId)
                 .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
+    }
+
+    public User getUserByEmail(String email) {
+        return repository.findByEmail(email).orElse(null);
+    }
+
+    public void deleteUserById(int userId) {
+        repository.deleteById(userId);
+    }
+
+    public ResponseEntity<String> resendRegistrationOtp(String email) {
+        // Check if email is present in pending registrations
+        if (!temporaryStorage.hasPendingRegistration(email)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No pending registration found for this email");
+        }
+        try {
+            // Resend OTP
+            ResponseEntity<String> otpResponse = notificationClient.sendOTP(email);
+            System.out.println(otpResponse);
+            if (otpResponse.getStatusCode() == HttpStatus.OK) {
+                return ResponseEntity.ok("OTP resent to your email.");
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Failed to resend OTP. Please try again.");
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to resend OTP: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to resend OTP. Please try again.");
+        }
     }
 
 }

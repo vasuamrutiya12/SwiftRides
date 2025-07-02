@@ -40,6 +40,9 @@ public class ContactUs {
     @Column
     private String status; // PENDING, RESPONDED, CLOSED
 
+    @Column
+    private String answer;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

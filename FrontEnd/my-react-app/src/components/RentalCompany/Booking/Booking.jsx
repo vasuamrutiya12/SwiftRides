@@ -5,6 +5,7 @@ import BookingCard from "./BookingCard"
 import Navbar from "../Navbar"
 import ItemsPerPageSelector from "./ItemsPerPageSelector"
 import Pagination from "./Pagination"
+import { useLoading } from "../../Loader/LoadingProvider"
 
 export default function Bookings() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -13,13 +14,14 @@ export default function Bookings() {
   const [itemsPerPage, setItemsPerPage] = useState(6)
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
+  const { showLoader, hideLoader } = useLoading()
 
   const token = localStorage.getItem("token");
   const email = localStorage.getItem("email");
+  
   useEffect(() => {
-
-
     const fetchBookings = async () => {
+      showLoader("Loading bookings data...");
       try {
         const resId = await fetch("http://localhost:8084/auth/user/email", {
           method: "POST",
@@ -37,10 +39,7 @@ export default function Bookings() {
           },
         })
 
-
         const bookingData = await res.json()
-
-        
         
         // Enrich each booking with car and customer data
         const enrichedBookings = await Promise.all(
@@ -56,22 +55,23 @@ export default function Bookings() {
 
             const car = await carRes.json()
             const customer = await customerRes.json()
-console.log(booking);
             return {
               ...booking,
+              totalAmount: booking.totalAmount*0.75,
               customerName: customer.fullName,
               customerPhone: customer.phoneNumber,
-              customerEmail: `user${customer.customerId}@example.com`, // Optional if not returned
+              customerEmail: customer.email, 
               carName: `${car.make} ${car.model}`,
             }
           })
         )
 
         setBookings(enrichedBookings)
-        setLoading(false)
       } catch (error) {
         console.error("Failed to fetch bookings", error)
+      } finally {
         setLoading(false)
+        hideLoader()
       }
     }
 

@@ -5,7 +5,6 @@ const RegisterOTP = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email;
-
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -102,11 +101,10 @@ const RegisterOTP = () => {
 
       if (response.ok) {
         // Save token to localStorage/sessionStorage/cookie
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("email", data.email);
+
 
         // Redirect to your desired route
-        navigate("/"); // or "/register" or whatever is your landing page
+        navigate("/login"); // or "/register" or whatever is your landing page
       } else {
         setError(data.message || "Invalid OTP");
         setOtp(["", "", "", "", "", ""]);
@@ -130,7 +128,7 @@ const RegisterOTP = () => {
     setError("");
 
     try {
-      await fetch("/api/resend-otp", {
+      await fetch("http://localhost:8084/auth/register/resend-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -272,12 +270,7 @@ const RegisterOTP = () => {
           </div>
         </div>
 
-        {/* Additional Options */}
-        <div className="mt-6 text-center">
-          <button className="text-gray-500 hover:text-gray-700 text-sm hover:underline transition-colors duration-200">
-            Use a different phone number
-          </button>
-        </div>
+        
       </div>
     </div>
   );

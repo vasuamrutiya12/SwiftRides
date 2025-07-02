@@ -238,7 +238,7 @@ export default function RentalCompanies() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mx-5">
+          <div className="grid grid-cols-1 min-[890px]:grid-cols-2 min-[1090px]:grid-cols-3 min-[1410px]:grid-cols-4 gap-4 sm:gap-6 mx-5">
             {currentCompanies.map((company) => (
               <CompanyCard
                 key={company.companyId}

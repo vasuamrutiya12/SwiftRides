@@ -19,7 +19,7 @@ public interface CustomerService {
 
     Customer updateCustomer(Integer id, Customer updatedCustomer);
 
-    void deleteCustomer(Integer id);
+    void blockCustomer(Integer id);
 
     ResponseEntity<BookingRequestDto> makeBooking(Integer customerId,BookingRequestDto request);
 
@@ -29,8 +29,11 @@ public interface CustomerService {
 
     CarDto addReviewofCar(int customerId, int carId, ReviewDto reviewDto);
 
+    Customer updateDrivingLicenseImage(Integer customerId, String imageUrl);
+
     Long getTotalCustomers();
 
+    Customer updateCustomerStatus(Integer customerId, String status);
 
 }
 

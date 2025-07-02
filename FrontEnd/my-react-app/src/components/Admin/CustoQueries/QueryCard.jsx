@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { Edit3, Trash2, User, Phone, TriangleAlert, MessageSquareText, Send, X, AlertTriangle } from 'lucide-react';
-const QueryCard = ({ query, onDelete }) => {
+import userImg from "../../../images/userImg.png"
+
+const QueryCard = ({ query, onDelete, onAnswered }) => {
   const [answeropen, setAnswerOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const token = localStorage.getItem("token");
 
   const handleAnswer = () => {
     setAnswerOpen(true);
@@ -13,12 +17,33 @@ const QueryCard = ({ query, onDelete }) => {
     setDeleteConfirmOpen(true);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim()) {
-      console.log('Sending message:', message);
-      console.log('Query ID:', query.queryId);
-      setMessage('');
-      setAnswerOpen(false);
+      setLoading(true);
+      try {
+        // Prepare payload as per QueryAnswerDto
+        const payload = {
+          id: query.queryId,
+          answer: message.trim(),
+        };
+        const response = await fetch('http://localhost:9090/api/contact/answer', {
+          method: 'POST',
+           headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) throw new Error('Failed to send answer');
+        // Optionally handle response data
+        if (onAnswered) onAnswered(query.queryId, message.trim());
+        setMessage('');
+        setAnswerOpen(false);
+      } catch (err) {
+        alert('Failed to send answer. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -51,6 +76,14 @@ const QueryCard = ({ query, onDelete }) => {
     }
   };
 
+  // Helper to format date
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d)) return dateStr;
+    return d.toLocaleString();
+  };
+
   return (
     <>
       {/* Responsive Card - adjusts width based on screen size */}
@@ -62,10 +95,13 @@ const QueryCard = ({ query, onDelete }) => {
           <div className="relative z-10">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-white text-base sm:text-lg font-bold">Query #{query.queryId}</h3>
+                <h3 className="text-white text-base sm:text-lg font-bold">Query #{ query.queryId}</h3>
+                {query.createdAt && (
+                  <div className="text-xs text-white/80 mt-1">{formatDate(query.createdAt)}</div>
+                )}
               </div>
               <div className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(query.status)}`}>
-                {query.status.toUpperCase()}
+                {query.status ? query.status.toUpperCase() : (query.answer ? 'ANSWERED' : 'PENDING')}
               </div>
             </div>
           </div>
@@ -76,11 +112,15 @@ const QueryCard = ({ query, onDelete }) => {
           {/* Customer Info */}
           <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
-              <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+             <img
+                src={userImg}
+                alt={query.name || 'Customer'}
+                className="w-14 h-14 rounded-full object-cover ring-2 ring-red-200 shadow-md"
+                />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">{query.name}</p>
-              <p className="text-xs sm:text-sm text-gray-600 truncate">{query.email}</p>
+              <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">{query.name || '-'}</p>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">{query.email || '-'}</p>
             </div>
           </div>
 
@@ -88,21 +128,21 @@ const QueryCard = ({ query, onDelete }) => {
           <div className="grid grid-cols-1 gap-3">
             <div className="flex items-center gap-3">
               <TriangleAlert className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0" />
-              <span className="text-gray-700 text-sm sm:text-base truncate">{query.category}</span>
+              <span className="text-gray-700 text-sm sm:text-base truncate">{query.category || query.subject || '-'}</span>
             </div>
             <div className="flex items-start gap-3">
               <MessageSquareText className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0 mt-0.5" />
-              <span className="text-gray-700 text-sm sm:text-base break-words">{query.message}</span>
+              <span className="text-gray-700 text-sm sm:text-base break-words">{query.message || '-'}</span>
             </div> 
-            {query.reply != null && ( 
+            {query.reply != null || query.answer != null ? ( 
               <>
                 <h4 className='my-2 sm:my-3 text-lg sm:text-2xl font-bold text-amber-800'>Your Answer</h4>
                 <div className="flex items-start gap-3">
                   <Send className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700 text-sm sm:text-base break-words">{query.reply}</span>
+                  <span className="text-gray-700 text-sm sm:text-base break-words">{query.reply || query.answer}</span>
                 </div>  
               </>
-            )}       
+            ) : null}       
           </div>
         </div>
 
@@ -182,9 +222,9 @@ const QueryCard = ({ query, onDelete }) => {
               <button
                 onClick={handleSendMessage}
                 className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
+                disabled={loading}
               >
-                <Send className="w-4 h-4" />
-                Send
+                {loading ? 'Sending...' : (<><Send className="w-4 h-4" />Send</>)}
               </button>
             </div>
           </div>

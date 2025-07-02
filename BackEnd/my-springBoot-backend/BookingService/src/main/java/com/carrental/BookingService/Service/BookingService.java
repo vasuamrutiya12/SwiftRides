@@ -29,4 +29,5 @@ public interface BookingService {
     Long getTotalBookings();
 
     Double getTotalRevenue();
+
 }

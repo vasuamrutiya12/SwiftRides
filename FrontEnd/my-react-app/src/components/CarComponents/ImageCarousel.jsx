@@ -21,7 +21,7 @@ const ImageCarousel = ({ images, carName }) => {
       <img
         src={images[currentIndex]}
         alt={`${carName} - Image ${currentIndex + 1}`}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-contain bg-white"
       />
       
       {images.length > 1 && (

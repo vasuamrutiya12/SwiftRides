@@ -34,6 +34,11 @@ const Navbar = () => {
     setIsSidebarOpen(false);
   };
 
+  const handleLogout = () => {
+    localStorage.clear();
+    // Optionally, you can also redirect here if needed
+  };
+
   return (
     <>
       {/* Fixed Navbar with Blur Background */}
@@ -52,14 +57,12 @@ const Navbar = () => {
               </div>
               <div className="hidden sm:block">
                 <span className="text-red-500 text-xl font-bold tracking-wide drop-shadow-md">
-                  RentCorp
+                  SwiftRides
                 </span>
-                <div className="text-red-400 text-xl font-medium -mt-1">
-                  Dashboard
-                </div>
+                
               </div>
               <span className="text-red-400 text-lg font-bold sm:hidden drop-shadow-md">
-                RentCorp
+                SwiftRides
               </span>
             </Link>
 
@@ -77,13 +80,11 @@ const Navbar = () => {
                         ? "bg-white/20 text-red-500 shadow-lg backdrop-blur-sm"
                         : "text-black/90 hover:bg-white/10 hover:text-red-400 hover:shadow-md"
                       }`}
+                    onClick={item.id === "logout" ? handleLogout : undefined}
                   >
                     <Icon className={`h-4 w-4 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-105'
                       }`} />
                     <span className="font-medium text-sm">{item.label}</span>
-                    {/* {isActive && (
-                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
-                    )} */}
                   </Link>
                 );
               })}
@@ -105,10 +106,10 @@ const Navbar = () => {
                         : "text-white/90 hover:bg-white/10 hover:text-white hover:shadow-md"
                       }`}
                   >
-                    <Icon className={`h-5 w-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-105'
+                    <Icon className={`h-5 w-5 text-black transition-transform duration-300 ${isActive ? 'scale-110 text-red-500' : 'group-hover:scale-105'
                       }`} />
                     {isActive && (
-                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
+                      <div className=" absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
                     )}
                   </Link>
                 );
@@ -176,7 +177,7 @@ const Navbar = () => {
               <Link
                 key={item.id}
                 to={item.path}
-                onClick={closeSidebar}
+                onClick={item.id === "logout" ? handleLogout : closeSidebar}
                 className={`group relative flex items-center space-x-4 px-4 py-4 rounded-xl transition-all duration-300 ${isActive
                     ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
                     : "text-white/90 hover:bg-white/10 hover:text-white hover:shadow-md"

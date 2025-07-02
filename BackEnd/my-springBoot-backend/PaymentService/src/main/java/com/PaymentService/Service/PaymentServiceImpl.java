@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -27,6 +29,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final RentalCompanyClient companyClient;
     private final StripeService stripeService;
     private final NotificationServiceClient notificationServiceClient;
+    private final CurrencyConversionService currencyConversionService;
 
     @Value("${stripe.webhook.secret}")
     private String webhookSecret;
@@ -40,12 +43,15 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentServiceImpl(PaymentRepository paymentRepository,
                               BookingClient bookingClient,
                               RentalCompanyClient companyClient,
-                              StripeService stripeService, NotificationServiceClient notificationServiceClient) {
+                              StripeService stripeService, 
+                              NotificationServiceClient notificationServiceClient,
+                              CurrencyConversionService currencyConversionService) {
         this.paymentRepository = paymentRepository;
         this.bookingClient = bookingClient;
         this.companyClient = companyClient;
         this.stripeService = stripeService;
         this.notificationServiceClient = notificationServiceClient;
+        this.currencyConversionService = currencyConversionService;
     }
 
     public PaymentResponse createPaymentSession(PaymentRequest request) {
@@ -55,11 +61,19 @@ public class PaymentServiceImpl implements PaymentService {
             BookingDTO booking = bookingClient.getBookingById(request.getBookingId());
             CompanyDTO company = companyClient.getCompanyById(request.getCompanyId());
 
+            // Convert amount from INR to target currency if needed
+            BigDecimal amountInTargetCurrency = request.getAmount();
+            if (!"inr".equalsIgnoreCase(request.getCurrency())) {
+                amountInTargetCurrency = currencyConversionService.convertFromINR(request.getAmount(), request.getCurrency());
+                log.info("Converted amount from INR {} to {} {} for currency {}", 
+                    request.getAmount(), amountInTargetCurrency, request.getCurrency().toUpperCase(), request.getCurrency());
+            }
+
             // Create payment record
             Payment payment = new Payment();
             payment.setBookingId(request.getBookingId());
             payment.setCompanyId(request.getCompanyId());
-            payment.setAmount(request.getAmount());
+            payment.setAmount(request.getAmount()); // Store original INR amount
             payment.setPaymentMethod(request.getPaymentMethod());
             payment.setCurrency(request.getCurrency());
             payment.setCustomerEmail(request.getCustomerEmail());
@@ -67,9 +81,9 @@ public class PaymentServiceImpl implements PaymentService {
                     request.getDescription() : "Car rental booking for " + booking.getBookingReference());
             payment.setStatus(Payment.PaymentStatus.PENDING);
 
-            // Create Stripe session request
+            // Create Stripe session request with converted amount
             StripeSessionRequest sessionRequest = new StripeSessionRequest();
-            sessionRequest.setAmount(request.getAmount());
+            sessionRequest.setAmount(amountInTargetCurrency); // Use converted amount for Stripe
             sessionRequest.setCurrency(request.getCurrency());
             sessionRequest.setCustomerEmail(request.getCustomerEmail());
             sessionRequest.setDescription(payment.getDescription());
@@ -368,5 +382,16 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.findAll().stream()
                 .mapToDouble(payment -> payment.getAmount().doubleValue())
                 .sum();
+    }
+
+    @Override
+    public Payment getPaymentById(int id) {
+        return paymentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Payment not found for id: " + id));
+    }
+
+    @Override
+    public List<Payment> getPaymentsByCompanyId(int companyId) {
+        return paymentRepository.findByCompanyId(companyId);
     }
 }

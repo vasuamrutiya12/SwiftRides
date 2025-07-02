@@ -1,10 +1,10 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import SearchFilter from "../../RentalCompany/SearchFilter"
 import QueryCard from "./QueryCard"
 import Navbar from "../Navbar"
 import ItemsPerPageSelector from "../../RentalCompany/Booking/ItemsPerPageSelector"
 import Pagination from "../../RentalCompany/Booking/Pagination"
-// import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { useLoading } from "../../Loader/LoadingProvider"
 
 
 export default function CustomerQueries() {
@@ -12,41 +12,45 @@ export default function CustomerQueries() {
   const [filterStatus, setFilterStatus] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(25)
+  const { showLoader , hideLoader} = useLoading();
+  const token=localStorage.getItem("token");
 
-  const [queries, setQueries] = useState([
-    {
-        queryId:12,
-        name:"john vik",
-        email:"johnvik@rek.comm",
-        category:"Booking issue",
-        
-        message:"ererewrvfc dffsd dssf",
-        status:"pending",
-        reply:null,
-        createdAt:"06/08/202514:51:35GMT+05:30"
-    },
-    {
-        queryId:13,
-        name:"vihan vik",
-        email:"johnvik@rek.comm",
-        category:"Booking issue",
-        message:"ererewrvfc dffsd dssf",
-        status:"answered",
-        reply:"we will fix it soon",
-        createdAt:"06/08/202514:51:35GMT+05:30"
-    },
-    {
-        queryId:14,
-        name:"rwewr vik",
-        email:"johnvik@rek.comm",
-        category:"Booking issue",
-        message:"ererewrvfc dffsd dssf",
-        status:"pending",
-        reply:null,
-        createdAt:"06/08/202514:51:35GMT+05:30"
-    },
-  ])
-   
+  const [queries, setQueries] = useState([]);
+
+  useEffect(() => {
+    const fetchQueries = async () => {
+      showLoader("Loading Queries...");
+      try {
+        const res = await fetch('http://localhost:9090/api/contact/all', {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        if (!res.ok) throw new Error('Failed to fetch queries');
+        const data = await res.json();
+        // Map backend fields to frontend expected fields
+        const mapped = data.map(q => ({
+          queryId: q.id,
+          name: q.name,
+          email: q.email,
+          category: q.category || q.subject || '',
+          message: q.message,
+          status: q.answer ? 'answered' : 'pending',
+          reply: q.answer || null,
+          createdAt: q.createdAt || '',
+        }));
+        setQueries(mapped);
+      } catch (err) {
+        setQueries([]);
+      } finally {
+         hideLoader();
+      }
+    };
+    fetchQueries();
+    // eslint-disable-next-line
+  }, []);
 
   const filterOptions = [
     { value: "all", label: "All Queries" },
@@ -55,9 +59,24 @@ export default function CustomerQueries() {
 
   ]
 
-  const handleDeleteQuery = (queryId) => {
-    setQueries(prev => prev.filter(q => q.queryId !== queryId));
+  const handleDeleteQuery = async (queryId) => {
+    showLoader("Deleting query...")
+    const response = await fetch(`http://localhost:9090/api/contact/${queryId}`, {
+          method: 'DELETE',
+           headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }  
+        });
+        if (!response.ok) throw new Error('Failed to send answer');
+        hideLoader();
   }
+
+  const handleAnswered = (queryId, answer) => {
+    setQueries(prev => prev.map(q =>
+      q.queryId === queryId ? { ...q, reply: answer, status: 'answered' } : q
+    ));
+  };
 
   const filteredQueries = queries.filter((query) => {
     const matchesSearch =
@@ -108,9 +127,9 @@ export default function CustomerQueries() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3  gap-6 mx-5">
+            <div className="grid grid-cols-1 min-[890px]:grid-cols-2 min-[1090px]:grid-cols-3 min-[1410px]:grid-cols-4 gap-4 sm:gap-6 mx-5">
               {currentQueries.map((query) => (
-                <QueryCard key={query.queryId} query={query} onDelete={handleDeleteQuery} />
+                <QueryCard key={query.queryId} query={query} onDelete={handleDeleteQuery} onAnswered={handleAnswered} />
               ))}
             </div>
 

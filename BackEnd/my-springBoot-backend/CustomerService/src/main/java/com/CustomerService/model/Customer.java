@@ -32,4 +32,8 @@ public class Customer {
 
     private String drivingLicenseNumber;
 
+    private String drivingLicenseImg;
+
+    private String drivingLicenseStatus;
+
 }

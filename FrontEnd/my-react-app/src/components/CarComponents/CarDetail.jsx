@@ -5,13 +5,52 @@ import ImageCarousel from "./ImageCarousel"
 import StarRating from "./StarRating"
 import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../BookingCar/BookingContext';
-
+import { useEffect, useState } from 'react';
+import {useLoading} from "../Loader/LoadingProvider"
 const CarDetails = () => {
 
     const location = useLocation();
     const { car } = location.state || {};
     const navigate = useNavigate();
     const { handleBookNow } = useBooking();
+    const {showLoader , hideLoader , isLoading} = useLoading();
+
+    const [reviews, setReviews] = useState([]);
+    const [averageRating, setAverageRating] = useState(0);
+    const [errorReviews, setErrorReviews] = useState(null);
+
+    const BASE_URL_REVIEW = "http://localhost:9090"; 
+
+    useEffect(() => {
+      showLoader("Loading Reviews...");
+      if (car && car.carId) {
+        const fetchReviews = async () => {
+          try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`${BASE_URL_REVIEW}/api/reviews/car/${car.carId}`, {
+              headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+              }
+            });
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setReviews(data);
+
+            const avg = data.length > 0 ? (data.reduce((sum, review) => sum + review.rating, 0) / data.length).toFixed(1) : 0;
+            setAverageRating(parseFloat(avg));
+          } catch (error) {
+            console.error("Failed to fetch reviews:", error);
+            setErrorReviews(error);
+          } finally {
+            hideLoader();
+          }
+        };
+        fetchReviews();
+      }
+    }, [car]);
 
     const handleBackClick = () => {
       navigate(-1);
@@ -26,49 +65,8 @@ const CarDetails = () => {
   if (!car) {
     return <p>No car data available.</p>;
   }
-  const reviews = [
-  {
-    id: 1,
-    userName: "John Smith",
-    rating: 5,
-    date: "2025-05-20",
-    comment: "Excellent car! Very comfortable and fuel-efficient. The GPS system was very helpful during my trip. Highly recommended for family trips.",
-    avatar: "JS"
-  },
-  {
-    id: 2,
-    userName: "Sarah Johnson",
-    rating: 4,
-    date: "2025-05-18",
-    comment: "Great experience overall. The car was clean and well-maintained. Air conditioning worked perfectly. Only minor issue was the pickup location was a bit hard to find.",
-    avatar: "SJ"
-  },
-  {
-    id: 3,
-    userName: "Mike Wilson",
-    rating: 5,
-    date: "2025-05-15",
-    comment: "Outstanding service! The Toyota Camry exceeded my expectations. Smooth drive, excellent fuel economy, and all features worked flawlessly. Will definitely rent again.",
-    avatar: "MW"
-  },
-  {
-    id: 4,
-    userName: "Emily Davis",
-    rating: 4,
-    date: "2025-05-12",
-    comment: "Very reliable car for city driving. Bluetooth connectivity was seamless. The seating is comfortable for long drives. Good value for money.",
-    avatar: "ED"
-  },
-  {
-    id: 5,
-    userName: "David Brown",
-    rating: 3,
-    date: "2025-05-10",
-    comment: "Decent car but had some minor issues with the GPS. Overall experience was okay. Customer service was responsive when I reported the issue.",
-    avatar: "DB"
-  }
-];
-   const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+
+   if (errorReviews) return <p>Error loading reviews: {errorReviews.message}</p>;
 
 
   return (
