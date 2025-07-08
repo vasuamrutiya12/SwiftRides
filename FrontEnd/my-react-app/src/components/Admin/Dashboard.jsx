@@ -622,92 +622,92 @@ const Dashboard = () => {
   ]
 
   // Revenue distribution (simulated based on actual revenue)
-  const revenueDistributionData = [
-    {
-      name: "Completed Bookings",
-      value: Math.round(statsData.totalRevenue * 0.75),
-      color: "#dc2626",
-    },
-    {
-      name: "Pending Payments",
-      value: Math.round(statsData.totalRevenue * 0.15),
-      color: "#ef4444",
-    },
-    {
-      name: "Refunds",
-      value: Math.round(statsData.totalRevenue * 0.1),
-      color: "#fca5a5",
-    },
-  ]
+  // const revenueDistributionData = [
+  //   {
+  //     name: "Completed Bookings",
+  //     value: Math.round(statsData.totalRevenue * 0.75),
+  //     color: "#dc2626",
+  //   },
+  //   {
+  //     name: "Pending Payments",
+  //     value: Math.round(statsData.totalRevenue * 0.15),
+  //     color: "#ef4444",
+  //   },
+  //   {
+  //     name: "Refunds",
+  //     value: Math.round(statsData.totalRevenue * 0.1),
+  //     color: "#fca5a5",
+  //   },
+  // ]
 
   // Performance metrics based on actual data
-  const performanceMetricsData = [
-    {
-      metric: "Customer Ratio",
-      value: statsData.totalCompanies > 0 ? Math.round(statsData.totalCustomers / statsData.totalCompanies) : 0,
-      target: 50,
-      color: "#dc2626",
-    },
-    {
-      metric: "Booking Rate",
-      value: statsData.totalCustomers > 0 ? Math.round((statsData.totalBookings / statsData.totalCustomers) * 100) : 0,
-      target: 80,
-      color: "#ef4444",
-    },
-    {
-      metric: "Revenue per Booking",
-      value: statsData.totalBookings > 0 ? Math.round(statsData.totalRevenue / statsData.totalBookings) : 0,
-      target: 5000,
-      color: "#f87171",
-    },
-    {
-      metric: "Query Resolution",
-      value:
-        statsData.totalQueries > 0 ? Math.round(((statsData.totalQueries - 20) / statsData.totalQueries) * 100) : 0,
-      target: 90,
-      color: "#fca5a5",
-    },
-  ]
+  // const performanceMetricsData = [
+  //   {
+  //     metric: "Customer Ratio",
+  //     value: statsData.totalCompanies > 0 ? Math.round(statsData.totalCustomers / statsData.totalCompanies) : 0,
+  //     target: 50,
+  //     color: "#dc2626",
+  //   },
+  //   {
+  //     metric: "Booking Rate",
+  //     value: statsData.totalCustomers > 0 ? Math.round((statsData.totalBookings / statsData.totalCustomers) * 100) : 0,
+  //     target: 80,
+  //     color: "#ef4444",
+  //   },
+  //   {
+  //     metric: "Revenue per Booking",
+  //     value: statsData.totalBookings > 0 ? Math.round(statsData.totalRevenue / statsData.totalBookings) : 0,
+  //     target: 5000,
+  //     color: "#f87171",
+  //   },
+  //   {
+  //     metric: "Query Resolution",
+  //     value:
+  //       statsData.totalQueries > 0 ? Math.round(((statsData.totalQueries - 20) / statsData.totalQueries) * 100) : 0,
+  //     target: 90,
+  //     color: "#fca5a5",
+  //   },
+  // ]
 
   // Monthly trend simulation based on current totals
-  const monthlyTrendData = [
-    {
-      month: "Jan",
-      revenue: Math.round(statsData.totalRevenue * 0.12),
-      bookings: Math.round(statsData.totalBookings * 0.14),
-      customers: Math.round(statsData.totalCustomers * 0.15),
-    },
-    {
-      month: "Feb",
-      revenue: Math.round(statsData.totalRevenue * 0.14),
-      bookings: Math.round(statsData.totalBookings * 0.16),
-      customers: Math.round(statsData.totalCustomers * 0.16),
-    },
-    {
-      month: "Mar",
-      revenue: Math.round(statsData.totalRevenue * 0.13),
-      bookings: Math.round(statsData.totalBookings * 0.15),
-      customers: Math.round(statsData.totalCustomers * 0.14),
-    },
-    {
-      month: "Apr",
-      revenue: Math.round(statsData.totalRevenue * 0.18),
-      bookings: Math.round(statsData.totalBookings * 0.19),
-      customers: Math.round(statsData.totalCustomers * 0.17),
-    },
-    {
-      month: "May",
-      revenue: Math.round(statsData.totalRevenue * 0.16),
-      bookings: Math.round(statsData.totalBookings * 0.17),
-      customers: Math.round(statsData.totalCustomers * 0.19),
-    },
-    {
-      month: "Jun",
-      revenue: Math.round(statsData.totalRevenue * 0.27),
-      bookings: Math.round(statsData.totalBookings * 0.19),
-      customers: Math.round(statsData.totalCustomers * 0.19),
-    },
-  ]
+  // const monthlyTrendData = [
+  //   {
+  //     month: "Jan",
+  //     revenue: Math.round(statsData.totalRevenue * 0.12),
+  //     bookings: Math.round(statsData.totalBookings * 0.14),
+  //     customers: Math.round(statsData.totalCustomers * 0.15),
+  //   },
+  //   {
+  //     month: "Feb",
+  //     revenue: Math.round(statsData.totalRevenue * 0.14),
+  //     bookings: Math.round(statsData.totalBookings * 0.16),
+  //     customers: Math.round(statsData.totalCustomers * 0.16),
+  //   },
+  //   {
+  //     month: "Mar",
+  //     revenue: Math.round(statsData.totalRevenue * 0.13),
+  //     bookings: Math.round(statsData.totalBookings * 0.15),
+  //     customers: Math.round(statsData.totalCustomers * 0.14),
+  //   },
+  //   {
+  //     month: "Apr",
+  //     revenue: Math.round(statsData.totalRevenue * 0.18),
+  //     bookings: Math.round(statsData.totalBookings * 0.19),
+  //     customers: Math.round(statsData.totalCustomers * 0.17),
+  //   },
+  //   {
+  //     month: "May",
+  //     revenue: Math.round(statsData.totalRevenue * 0.16),
+  //     bookings: Math.round(statsData.totalBookings * 0.17),
+  //     customers: Math.round(statsData.totalCustomers * 0.19),
+  //   },
+  //   {
+  //     month: "Jun",
+  //     revenue: Math.round(statsData.totalRevenue * 0.27),
+  //     bookings: Math.round(statsData.totalBookings * 0.19),
+  //     customers: Math.round(statsData.totalCustomers * 0.19),
+  //   },
+  // ]
 
   const stats = [
     {
@@ -816,7 +816,7 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {/* Business Overview Bar Chart */}
           <motion.div variants={itemVariants} className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center gap-2 mb-6">
@@ -842,7 +842,7 @@ const Dashboard = () => {
           </motion.div>
 
           {/* Revenue Distribution Pie Chart */}
-          <motion.div variants={itemVariants} className="bg-white rounded-xl shadow-lg p-6">
+          {/* <motion.div variants={itemVariants} className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center gap-2 mb-6">
               <PieIcon className="w-5 h-5 text-red-600" />
               <h3 className="text-lg font-semibold text-gray-800">Revenue Distribution</h3>
@@ -866,10 +866,10 @@ const Dashboard = () => {
                 <Legend />
               </RechartsPieChart>
             </ResponsiveContainer>
-          </motion.div>
+          </motion.div> */}
 
           {/* Monthly Trends Area Chart */}
-          <motion.div variants={itemVariants} className="bg-white rounded-xl shadow-lg p-6">
+          {/* <motion.div variants={itemVariants} className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center gap-2 mb-6">
               <TrendingUp className="w-5 h-5 text-red-600" />
               <h3 className="text-lg font-semibold text-gray-800">Monthly Trends</h3>
@@ -897,10 +897,10 @@ const Dashboard = () => {
                 <Line type="monotone" dataKey="bookings" stroke="#ef4444" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
-          </motion.div>
+          </motion.div> */}
 
           {/* Performance Metrics Line Chart */}
-          <motion.div variants={itemVariants} className="bg-white rounded-xl shadow-lg p-6">
+         {/* <motion.div variants={itemVariants} className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center gap-2 mb-6">
               <Activity className="w-5 h-5 text-red-600" />
               <h3 className="text-lg font-semibold text-gray-800">Performance Metrics</h3>
@@ -922,7 +922,7 @@ const Dashboard = () => {
                 <Bar dataKey="target" fill="#fca5a5" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </motion.div>
+          </motion.div> */}
         </div>
 
         {/* Summary Cards */}

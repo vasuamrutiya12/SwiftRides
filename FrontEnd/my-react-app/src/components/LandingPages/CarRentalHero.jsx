@@ -20,7 +20,7 @@ const CarRentalHero = () => {
     };
   };
   const defaultDates = getDefaultDates();
-  const [pickupLocation, setPickupLocation] = useState('Jam Jodhpur');
+  const [pickupLocation, setPickupLocation] = useState('');
   const [pickupDate, setPickupDate] = useState(defaultDates.pickup);
   const [returnDate, setReturnDate] = useState(defaultDates.ret);
   const { showLoader, hideLoader ,isLoading} = useLoading()
@@ -29,7 +29,7 @@ const CarRentalHero = () => {
 const handleSearch = async () => {
   showLoader("Getting Car Ready...")
     const token = localStorage.getItem('token');
-    const city = pickupLocation.trim() === '' ? 'Jam Jodhpur' : encodeURIComponent(pickupLocation);
+    const city = pickupLocation;
     const pickup = pickupDate ? `${pickupDate}T10:00:00` : '';
     const ret = returnDate ? `${returnDate}T18:00:00` : '';
     const url = `http://localhost:9090/api/search?city=${city}&pickupDate=${pickup}&returnDate=${ret}`;
@@ -42,6 +42,7 @@ const handleSearch = async () => {
         },
       });
       const data = await response.json();
+      console.log(data);
       // Navigate to CarRentalPlatform and pass results
       navigate("/all-car", { state: { searchResults: data } });
       

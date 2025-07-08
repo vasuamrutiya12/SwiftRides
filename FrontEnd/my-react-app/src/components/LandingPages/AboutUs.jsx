@@ -49,14 +49,14 @@ const AboutUs = () => {
   const team = [
     {
       name: 'Druman Kaneriya',
-      role: 'Full Stake Developer',
+      role: 'Full Stack Developer',
       image: 'https://avatars.githubusercontent.com/u/116833054?v=4',
       link: 'https://github.com/druman12',
       description: 'A very knowledgeable person with extensive project experience, skilled in working with more than two technologies.'
     },
     {
       name: 'Vasu Amrutiya',
-      role: 'Full Stake Developer',
+      role: 'Full Stack Developer',
       image: 'https://avatars.githubusercontent.com/u/175853748?v=4',
       link: 'https://github.com/vasuamrutiya12',
       description: 'A tech visionary who built our backend with proper security, ensuring seamless experiences and efficient, fast data manipulations.'
