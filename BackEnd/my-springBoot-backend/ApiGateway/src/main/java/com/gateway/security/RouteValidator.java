@@ -19,9 +19,7 @@ public class RouteValidator {
             "/auth/register/initiate",
             "/auth/register/verify",
             "/eureka",
-            "/api/rental-company",
-            "/api/search",
-            "/api/reviews"
+            "/api/rental-company"
     );
 
     public Predicate<ServerHttpRequest> isSecured =
