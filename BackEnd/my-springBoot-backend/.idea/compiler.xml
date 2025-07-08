@@ -20,6 +20,7 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="ReviewService" />
+        <module name="SearchService" />
       </profile>
       <profile name="Annotation profile for CustomerService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -30,7 +31,6 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="CustomerService" />
-        <module name="SearchService" />
         <module name="CarService" />
         <module name="RentalCompaniesService" />
         <module name="NotificationService" />
