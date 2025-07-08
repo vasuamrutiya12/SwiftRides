@@ -81,12 +81,12 @@ public class NotificationService {
                                 <td style="border: 1px solid ##ddd; padding: 8px;">%s</td>
                                 <td style="border: 1px solid ##ddd; padding: 8px;">%s</td>
                                 <td style="border: 1px solid ##ddd; padding: 8px;">%s</td>
-                                <td style="border: 1px solid ##ddd; padding: 8px;">$%.2f</td>
+                                <td style="border: 1px solid ##ddd; padding: 8px;">₹%.2f</td>
                             </tr>
                         </table>
                         <p>If you have any questions, feel free to contact us. We're here to help!</p>
                         <p>Best regards,</p>
-                        <p><strong>Car Rental Team</strong></p>
+                        <p><strong>SwiftRides</strong></p>
                     </body>
                 </html>
               """,
@@ -129,12 +129,12 @@ public class NotificationService {
                 • Car ID: %s
                 • Pickup Date: %s
                 • Return Date: %s
-                • Total Amount: $%.2f
+                • Total Amount: ₹%.2f
 
                 If you have any questions, feel free to contact us. We're here to help!
 
                 Best regards,
-                *Car Rental Team*
+                *SwiftRides*
                 """,
                 customer.getFullName(),
                 booking.getCarId(),
