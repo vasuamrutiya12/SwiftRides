@@ -30,26 +30,13 @@ export default function LoginForm() {
 
       if (response.ok) {
         const data = await response.json()
-        console.log("Login Success:", data)
         localStorage.setItem("email", email)
         localStorage.setItem("token", data.token)
         localStorage.setItem("role", data.role)
+
+        navigate("/" , {replace:true})
+        window.location.reload()        
         
-        // Role-based redirection
-        switch(data.role) {
-          
-          case "CUSTOMER":
-            navigate("/customer-dashboard", { replace: true })
-            break
-          case "RENTAL_COMPANY":
-            navigate("/dashboard", { replace: true })
-            break
-          case "ADMIN":
-            navigate("/admin/dashboard", { replace: true })
-            break
-          default:
-            navigate("/pagenotfound", { replace: true })
-        }
       } else {
         const errorText = await response.text()
         setError(`Login failed: ${errorText}`)

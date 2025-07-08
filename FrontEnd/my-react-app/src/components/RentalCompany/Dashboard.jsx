@@ -66,7 +66,19 @@ export default function Dashboard() {
             ? reviewsData.reduce((sum, reviewsData) => sum + reviewsData.rating, 0) / reviewsData.length
             : 0
 
-        const [carsRes, bookingsRes, reviewsRes, revenueRes, ratingRes, customersRes] = await Promise.all([
+        const paymentsRes = await fetch(`http://localhost:9090/api/payments/company/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }).then((res) => res.json())
+
+        const overallRevenue = paymentsRes
+          .filter(payment => payment.status === "COMPLETED")
+          .reduce((sum, payment) => sum + Number(payment.amount), 0);
+
+        const [carsRes, bookingsRes, reviewsRes, ratingRes, customersRes] = await Promise.all([
           fetch(`http://localhost:9090/api/cars/total/companyId/${id}`, {
             method: "GET",
             headers: {
@@ -84,14 +96,6 @@ export default function Dashboard() {
           }).then((res) => (res.ok ? res.json() : Promise.reject("Bookings fetch failed"))),
 
           reviewsData.length,
-
-          fetch("http://localhost:9090/api/cars/count/status/booked", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }).then((res) => res.json()),
 
           averageRating,
 
@@ -133,13 +137,13 @@ export default function Dashboard() {
             description: "Customer feedback",
           },
           {
-            title: "Monthly Revenue",
-            value: `$${revenueRes}`,
+            title: "Overall Revenue",
+            value: `₹${overallRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
             icon: CreditCard,
             color: "from-emerald-500 to-green-600",
             change: "+23%",
             changeType: "positive",
-            description: "This month",
+            description: "All time",
           },
           {
             title: "Customer Satisfaction",

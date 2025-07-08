@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import FilterSidebar from "./FilterSidebar";
 import AllCars from "./AllCars";
 import Navbar from "../LandingPages/Navbar";
@@ -47,6 +47,8 @@ const CarRentalPlatform = () => {
   const [returnDate, setReturnDate] = useState(defaultDates.ret);
 
   const [showAllCars, setShowAllCars] = useState(false);
+  const [allFetchedCars, setAllFetchedCars] = useState([]); // Store all fetched cars
+  const [showMobileFilters, setShowMobileFilters] = useState(false); // For mobile filter sidebar
 
   // Fetch rental company data
   useEffect(() => {
@@ -133,7 +135,6 @@ const CarRentalPlatform = () => {
       if (city && city.trim() !== '') {
         url = `http://localhost:9090/api/search?city=${city}&pickupDate=${pickup}&returnDate=${ret}`;
       } else {
-        // No city: fetch all cars (adjust endpoint as per your backend)
         url = `http://localhost:9090/api/search?pickupDate=${pickup}&returnDate=${ret}`;
       }
       const response = await fetch(url, {
@@ -144,7 +145,6 @@ const CarRentalPlatform = () => {
         },
       });
       const data = await response.json();
-      // data is an array of { car, company }
       const cars = data.map(item => ({
         ...item.car,
         companyName: item.company.companyName,
@@ -153,7 +153,8 @@ const CarRentalPlatform = () => {
         companyPhone: item.company.phoneNumber,
         companyId: item.company.companyId,
       }));
-      setFilteredCars(applyFilters(cars));
+      setAllFetchedCars(cars); // Store all fetched cars
+      setFilteredCars(applyFilters(cars)); // Apply filters initially
     } catch (error) {
       setError('Error searching cars');
     } finally {
@@ -163,17 +164,36 @@ const CarRentalPlatform = () => {
 
   // Initial fetch (default values)
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const city = params.get("city");
-    const pickup = params.get("pickupDate");
-    const ret = params.get("returnDate");
-    if (city) setPickupLocation(city);
-    if (pickup) setPickupDate(pickup);
-    if (ret) setReturnDate(ret);
-    // If no city, fetch all cars
-    fetchCars(city || '', `${pickup || pickupDate}T10:00:00`, `${ret || returnDate}T18:00:00`);
+    if (searchResults && Array.isArray(searchResults)) {
+      // Transform searchResults to match the expected car format
+      const cars = searchResults.map(item => ({
+        ...item.car,
+        companyName: item.company.companyName,
+        companyCity: item.company.city,
+        companyAddress: item.company.address,
+        companyPhone: item.company.phone,
+        companyId: item.company.companyId,
+      }));
+      setAllFetchedCars(cars);
+      setFilteredCars(applyFilters(cars));
+    } else {
+      // Fallback: fetch from API as before
+      const params = new URLSearchParams(location.search);
+      const city = params.get("city");
+      const pickup = params.get("pickupDate");
+      const ret = params.get("returnDate");
+      if (city) setPickupLocation(city);
+      if (pickup) setPickupDate(pickup);
+      if (ret) setReturnDate(ret);
+      fetchCars(city || '', `${pickup || pickupDate}T10:00:00`, `${ret || returnDate}T18:00:00`);
+    }
     // eslint-disable-next-line
   }, []);
+
+  // Re-apply filters whenever filters or allFetchedCars change
+  useEffect(() => {
+    setFilteredCars(applyFilters(allFetchedCars));
+  }, [filters, allFetchedCars]);
 
   // Search form submit
   const handleSearch = async (e) => {
@@ -274,6 +294,7 @@ const CarRentalPlatform = () => {
           />
         ) : (
           <div className="flex gap-8">
+            {/* Sidebar for large screens */}
             <div className="hidden lg:block w-80 flex-shrink-0">
               <FilterSidebar
                 filters={filters}
@@ -281,7 +302,26 @@ const CarRentalPlatform = () => {
                 onClearFilters={clearFilters}
               />
             </div>
+            {/* Sidebar for mobile screens */}
+            <FilterSidebar
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onClearFilters={clearFilters}
+              isMobile={true}
+              showMobileFilters={showMobileFilters}
+              onCloseMobile={() => setShowMobileFilters(false)}
+            />
             <div className="flex-1">
+              {/* Show Filters button for mobile */}
+              <div className="lg:hidden mb-4 flex justify-end">
+                <button
+                  onClick={() => setShowMobileFilters(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow"
+                >
+                  <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-7 7V21a1 1 0 01-1.447.894l-4-2A1 1 0 017 19v-7.293l-7-7A1 1 0 013 4z" /></svg>
+                  <span className="text-sm font-medium">Filters</span>
+                </button>
+              </div>
               {groupedCars.every((company) => company.cars.length === 0) ? (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">No cars found matching your criteria.</p>
@@ -314,7 +354,7 @@ const CarRentalPlatform = () => {
                         </div>
                       </div>
                       <div className="p-6">
-                        <AllCars cars={company.cars} onCarSelect={handleCarSelect} />
+                        <AllCars cars={company.cars} onShowMobileFilters={() => setShowMobileFilters(true)} />
                       </div>
                     </div>
                   ))}

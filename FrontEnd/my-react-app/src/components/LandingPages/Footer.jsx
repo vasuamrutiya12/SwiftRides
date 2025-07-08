@@ -7,11 +7,11 @@ const Footer = () => {
     <div>
       <footer className="bg-gray-800 text-gray-300 py-12">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center mb-4">
                 <Car className="h-6 w-6 text-blue-400" />
-                <span className="ml-2 text-lg font-bold text-white">DrivEasy</span>
+                <span className="ml-2 text-lg font-bold text-white">SwiftRides</span>
               </div>
               <p className="mb-4">Making car rentals easy, affordable, and accessible for everyone.</p>
               <div className="flex space-x-4">
@@ -56,7 +56,7 @@ const Footer = () => {
               </ul>
             </div>
             
-            <div>
+            {/* <div>
               <h4 className="text-white text-lg font-semibold mb-4">Contact Us</h4>
               <address className="not-italic">
                 <p className="mb-2">123 Rental Street</p>
@@ -65,11 +65,11 @@ const Footer = () => {
                 <p className="mb-2">Phone: +1 (555) 123-4567</p>
                 <p className="mb-2">Email: info@driveasy.com</p>
               </address>
-            </div>
+            </div> */}
           </div>
           
           <div className="border-t border-gray-700 mt-12 pt-8 text-center">
-            <p>&copy; {new Date().getFullYear()} DrivEasy Car Rental. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} SwiftRides Car Rental. All rights reserved.</p>
           </div>
         </div>
       </footer>

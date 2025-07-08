@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Car, Users, MessageSquare, DollarSign, Calendar, LogOut, Menu, X } from 'lucide-react';
-
+import { useNavigate } from "react-router-dom";
 const Navbar = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const navigate= useNavigate()
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Car, path: "/admin/dashboard" },
@@ -13,7 +14,6 @@ const Navbar = () => {
     { id: 'customers', label: 'Customers', icon: Users, path: "/admin/customer" },
     { id: 'bookings', label: 'Bookings', icon: Calendar, path: "/admin/bookings" },
     { id: 'queries', label: 'Customer Queries', icon: MessageSquare, path: "/admin/customer/queries" },
-    { id: 'revenue', label: 'Revenue', icon: DollarSign, path: "/admin/revenue" },
     { id: 'logout', label: 'LogOut', icon: LogOut, path: "/" },
   ];
 
@@ -40,6 +40,7 @@ const Navbar = () => {
     localStorage.clear();
     // Optionally, you can also redirect here if needed
   };
+  
 
   return (
     <>
@@ -53,7 +54,7 @@ const Navbar = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16  rounded-xl ">
             {/* Logo with Enhanced Styling */}
-            <Link to="/admin/dashboard" className="flex items-center space-x-3 group">
+            <Link to="/" className="flex items-center space-x-3 group">
               <div className="relative">
                 <div className="absolute inset-0 bg-white/20 rounded-full blur-sm group-hover:bg-white/30 transition-all duration-300"></div>
                 <Car className="relative h-8 w-8 text-red-500 drop-shadow-lg" />
