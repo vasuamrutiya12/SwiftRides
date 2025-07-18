@@ -1,4 +1,7 @@
 # 🚗 Car Rental System
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 A modern, microservices-based car rental platform that provides a seamless experience for customers, rental companies, and administrators with comprehensive verification and communication features.
 
@@ -263,3 +266,25 @@ npm run dev
 ## 📝 License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/vasuamrutiya12"><img src="https://avatars.githubusercontent.com/u/175853748?v=4?s=100" width="100px;" alt="Vasu Amrutiya"/><br /><sub><b>Vasu Amrutiya</b></sub></a><br /><a href="https://github.com/druman12/SwiftRides/commits?author=vasuamrutiya12" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
