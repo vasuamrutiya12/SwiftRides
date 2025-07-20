@@ -1341,6 +1341,8 @@ const Dashboard = () => {
                         className={`rounded-xl p-4 ${
                           profile?.drivingLicenseStatus === "verified"
                             ? "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200"
+                            : profile?.drivingLicenseStatus === "Rejected"
+                            ? "bg-gradient-to-r from-red-50 to-rose-50 border border-red-200"
                             : "bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200"
                         }`}
                       >
@@ -1349,11 +1351,15 @@ const Dashboard = () => {
                             className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                               profile?.drivingLicenseStatus === "verified"
                                 ? "bg-green-500"
+                                : profile?.drivingLicenseStatus === "Rejected"
+                                ? "bg-red-500"
                                 : "bg-amber-500"
                             }`}
                           >
                             {profile?.drivingLicenseStatus === "verified" ? (
                               <CheckCircle className="w-5 h-5 text-white" />
+                            ) : profile?.drivingLicenseStatus === "Rejected" ? (
+                              <XCircle className="w-5 h-5 text-white" />
                             ) : (
                               <AlertCircle className="w-5 h-5 text-white" />
                             )}
@@ -1366,17 +1372,25 @@ const Dashboard = () => {
                               className={`text-sm ${
                                 profile?.drivingLicenseStatus === "verified"
                                   ? "text-green-700"
+                                  : profile?.drivingLicenseStatus === "Rejected"
+                                  ? "text-red-700"
                                   : "text-amber-700"
                               }`}
                             >
                               {profile?.drivingLicenseStatus === "verified"
                                 ? "Verified"
+                                : profile?.drivingLicenseStatus === "Rejected"
+                                ? "Rejected"
                                 : "Pending Verification"}
                             </p>
-                            {profile?.drivingLicenseStatus !== "verified" && (
+                            {profile?.drivingLicenseStatus === "Rejected" && (
+                              <p className="text-xs text-red-600 mt-1">
+                                Your license was rejected. Please contact support or re-upload your license.
+                              </p>
+                            )}
+                            {profile?.drivingLicenseStatus !== "verified" && profile?.drivingLicenseStatus !== "rejected" && (
                               <p className="text-xs text-amber-600 mt-1">
-                                Your license will be verified by our admin team
-                                after submission.
+                                Your license will be verified by our admin team after submission.
                               </p>
                             )}
                           </div>

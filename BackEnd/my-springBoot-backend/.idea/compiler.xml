@@ -12,15 +12,15 @@
         <module name="ApiGateway" />
         <module name="InventoryService" />
       </profile>
-      <profile name="Annotation profile for CarRentalSystem" enabled="true">
+      <profile name="Annotation profile for ReviewService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="CustomerService" />
+        <module name="SearchService" />
         <module name="CarService" />
         <module name="RentalCompaniesService" />
         <module name="NotificationService" />
@@ -28,15 +28,6 @@
         <module name="ReviewService" />
         <module name="PaymentService" />
         <module name="userService" />
-      </profile>
-      <profile name="Annotation profile for SearchService" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
-        </processorPath>
-        <module name="SearchService" />
       </profile>
     </annotationProcessing>
   </component>

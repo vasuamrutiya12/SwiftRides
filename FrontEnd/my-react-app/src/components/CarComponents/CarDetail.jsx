@@ -26,12 +26,12 @@ const CarDetails = () => {
       if (car && car.carId) {
         const fetchReviews = async () => {
           try {
-            // const token = localStorage.getItem("token");
+            const token = localStorage.getItem("token");
             const response = await fetch(`${BASE_URL_REVIEW}/api/reviews/car/${car.carId}`, {
-              // headers: {
-              //   "Authorization": `Bearer ${token}`,
-              //   "Content-Type": "application/json"
-              // }
+              headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+              }
             });
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);

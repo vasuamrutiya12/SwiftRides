@@ -7,6 +7,7 @@ import com.notification.NotificationService.dto.BookingDTO;
 import com.notification.NotificationService.dto.CustomerDTO;
 import com.notification.NotificationService.dto.QueryDTO;
 import com.notification.NotificationService.dto.RentalCompanyDTO;
+import com.notification.NotificationService.dto.BlockReasonDTO;
 import com.notification.NotificationService.Entity.Notification;
 import com.notification.NotificationService.Repository.NotificationRepo;
 import jakarta.mail.internet.MimeMessage;
@@ -241,4 +242,29 @@ public class NotificationService {
         sendEmail(queryDTO.getEmail(), subject, body);
     }
 
+    public void sendBlockReasonToCustomer(BlockReasonDTO blockReasonDTO) {
+        String subject = "Account Blocked: Important Notice";
+        String body = String.format(
+                """
+                <html>
+                    <body style=\"font-family: Arial, sans-serif; line-height: 1.5; color: #333;\">
+                        <h2 style=\"color: #d9534f;\">Account Blocked</h2>
+                        <p>Dear <strong>%s</strong>,</p>
+                        <p>We regret to inform you that your account has been blocked for the following reason:</p>
+                        <blockquote style=\"background: #f8d7da; padding: 10px; border-left: 5px solid #d9534f;\">%s</blockquote>
+                        <p>If you believe this is a mistake or have any questions, please contact our support team.</p>
+                        <p>Best regards,<br><strong>Car Rental Team</strong></p>
+                    </body>
+                </html>
+                """,
+                blockReasonDTO.getCustomerName(),
+                blockReasonDTO.getReason()
+        );
+        sendEmail(blockReasonDTO.getCustomerEmail(), subject, body);
+        if (isTwilioConfigured() && blockReasonDTO.getCustomerEmail() != null) {
+            // If you want to send WhatsApp too, you can add phone number to DTO and send here
+            // Example (if phone number is added):
+            // sendWhatsAppMessage(blockReasonDTO.getCustomerPhone(), "Your account has been blocked. Reason: " + blockReasonDTO.getReason());
+        }
+    }
 }

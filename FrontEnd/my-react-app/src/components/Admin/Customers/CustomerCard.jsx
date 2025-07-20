@@ -12,6 +12,8 @@ const VerificationModal = ({
 }) => {
   const [isApproving, setIsApproving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showRejectForm, setShowRejectForm] = useState(false)
+  const [rejectReason, setRejectReason] = useState("")
   const token = localStorage.getItem("token")
   const { showLoader, hideLoader } = useLoading()
 
@@ -22,6 +24,58 @@ const VerificationModal = ({
     onClose()
     hideLoader()
   }
+
+  const handleReject = async () => {
+    if (!rejectReason.trim()) {
+      alert("Please enter a rejection reason.");
+      return;
+    }
+    setIsDeleting(true);
+    showLoader("Rejecting Customer...");
+    try {
+      const response = await fetch(`http://localhost:9090/api/customers/block/${customer.customerId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          drivingLicenseStatus: "rejected",
+        })
+      });
+      if (response.ok) {
+        // Notify customer via NotificationService
+        const notifyRes = await fetch("http://localhost:9090/api/notification/block-reason", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            customerId: customer.customerId,
+            customerEmail: customer.email,
+            customerName: customer.fullName,
+            reason: rejectReason
+          })
+        });
+        if (notifyRes.ok) {
+          onClose();
+          alert("Customer rejected and notified by email.");
+        } else {
+          alert("Customer rejected, but failed to send notification email.");
+        }
+      } else {
+        alert("Failed to reject customer.");
+      }
+    } catch (error) {
+      console.error("Error rejecting customer:", error);
+      alert("Error rejecting customer.");
+    } finally {
+      setIsDeleting(false);
+      hideLoader();
+      window.location.reload();
+    }
+  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -168,7 +222,14 @@ const VerificationModal = ({
                   <Check className="w-5 h-5" />
                   {isApproving ? "Approving..." : "Approve Customer"}
                 </button>
-                
+                <button
+                  onClick={() => setShowRejectForm(true)}
+                  disabled={isDeleting}
+                  className="flex-1 bg-gray-400 hover:bg-gray-500 disabled:bg-gray-300 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <X className="w-5 h-5" />
+                  {isDeleting ? "Rejecting..." : "Reject Customer"}
+                </button>
               </>
             ) : (
               <button
@@ -181,6 +242,47 @@ const VerificationModal = ({
               </button>
             )}
           </div>
+
+          {/* Reject Reason Form Modal */}
+          {showRejectForm && (
+            <div className="fixed inset-0  bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-60">
+              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-2xl p-8 max-w-md w-full">
+                <button
+                  onClick={() => setShowRejectForm(false)}
+                  className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  aria-label="Close"
+                  disabled={isDeleting}
+                >
+                  <svg xmlns='http://www.w3.org/2000/svg' className='h-5 w-5 text-gray-500' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' /></svg>
+                </button>
+                <h3 className="text-xl font-bold mb-4 text-gray-800 text-center">Reject Customer</h3>
+                <label className="block mb-2 text-gray-700 font-semibold">Reason for rejection</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-xl p-3 mb-4 min-h-[90px] focus:outline-none focus:ring-2 focus:ring-red-200 transition"
+                  value={rejectReason}
+                  onChange={e => setRejectReason(e.target.value)}
+                  placeholder="Enter reason..."
+                  disabled={isDeleting}
+                />
+                <div className="flex justify-end gap-2 mt-2">
+                  <button
+                    onClick={() => setShowRejectForm(false)}
+                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium border border-gray-300"
+                    disabled={isDeleting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleReject}
+                    className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold shadow-sm"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Rejecting..." : "Submit"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

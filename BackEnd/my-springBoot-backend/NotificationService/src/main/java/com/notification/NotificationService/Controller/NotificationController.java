@@ -2,6 +2,7 @@ package com.notification.NotificationService.Controller;
 
 import com.notification.NotificationService.Service.NotificationService;
 import com.notification.NotificationService.Service.OTPService;
+import com.notification.NotificationService.dto.BlockReasonDTO;
 import com.notification.NotificationService.dto.QueryDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,5 +51,17 @@ public class NotificationController {
             return ResponseEntity.ok("OTP validated successfully");
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired OTP");
+    }
+
+    @PostMapping("/block-reason")
+    public ResponseEntity<String> sendBlockReasonToCustomer(@RequestBody BlockReasonDTO blockReasonDTO) {
+        try {
+            notificationService.sendBlockReasonToCustomer(blockReasonDTO);
+            return ResponseEntity.ok("Block reason sent to customer successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error sending block reason: " + e.getMessage());
+        }
     }
 }

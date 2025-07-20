@@ -29,17 +29,21 @@ export default function LoginForm() {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        localStorage.setItem("email", email)
-        localStorage.setItem("token", data.token)
-        localStorage.setItem("role", data.role)
+        const data = await response.json();
+        localStorage.setItem("email", email);
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", data.role);
 
-        navigate("/" , {replace:true})
-        window.location.reload()        
-        
+        if (data.role === "ADMIN") {
+          navigate("/admin/dashboard", { replace: true });
+        } else if (data.role === "RENTAL_COMPANY") {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
       } else {
-        const errorText = await response.text()
-        setError(`Login failed: ${errorText}`)
+        const errorText = await response.text();
+        setError(`Login failed: ${errorText}`);
       }
     } catch (error) {
       setError("An error occurred. Please try again later.")
