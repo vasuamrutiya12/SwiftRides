@@ -44,6 +44,7 @@ const Dashboard = () => {
     phoneNumber: "",
     address: "",
     drivingLicenseNumber: "",
+    dateOfBirth: "",
   });
 
   const [profile, setProfile] = useState(null);
@@ -75,6 +76,15 @@ const Dashboard = () => {
     licenseImagePreview: null,
   });
   const [isEditingLicense, setIsEditingLicense] = useState(false);
+
+  const [selfieForm, setSelfieForm] = useState({
+    selfieImage: null,
+    selfieImagePreview: null,
+    selfieImageUrl: null,
+  });
+
+  const [showSelfieStep, setShowSelfieStep] = useState(false);
+  const [licenseSaved, setLicenseSaved] = useState(false);
 
   const token = localStorage.getItem("token");
   const email = localStorage.getItem("email");
@@ -444,33 +454,17 @@ const Dashboard = () => {
     try {
       let imageUrl = profile?.drivingLicenseImg || null;
       if (licenseForm.licenseImage) {
-        console.log("Attempting to upload image to Cloudinary...");
         const cloudinaryResponse = await uploadToCloudinary(
           licenseForm.licenseImage,
           "image"
         );
-
         if (!cloudinaryResponse) {
-          console.error(
-            "Cloudinary upload failed, received null or undefined response."
-          );
           hideLoader();
           alert("Failed to upload image. Please try again.");
-          return; // Stop execution if image upload fails
+          return;
         }
-
         imageUrl = cloudinaryResponse;
-        console.log(
-          "Image URL from Cloudinary (assigned to imageUrl):",
-          imageUrl
-        );
       }
-
-      console.log("Sending update request to backend with:", {
-        ...profile,
-        drivingLicenseNumber: licenseForm.drivingLicenseNumber,
-        drivingLicenseImg: imageUrl,
-      });
 
       const updatedCustomerResponse = await fetch(
         `${BASE_URL2}/api/customers/${customerId}`,
@@ -494,19 +488,19 @@ const Dashboard = () => {
 
       const newProfile = await updatedCustomerResponse.json();
       setProfile(newProfile);
-      alert("Driving license information updated successfully!");
       setIsEditingLicense(false);
       setLicenseForm({
         drivingLicenseNumber: "",
         licenseImage: null,
         licenseImagePreview: null,
       });
+      setLicenseSaved(true);
+      setShowSelfieStep(true); // Show selfie step after saving
+      alert("Driving license information updated successfully! Now upload a selfie for verification.");
     } catch (error) {
-      console.error("Error updating driving license:", error);
       alert("Failed to update driving license. Please try again.");
     } finally {
       hideLoader();
-      window.location.reload();
     }
   };
 
@@ -566,6 +560,83 @@ const Dashboard = () => {
       setSelectedBookingForDetails(null);
       hideLoader();
       window.location.reload();
+    }
+  };
+
+  const handleSelfieImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelfieForm({
+        ...selfieForm,
+        selfieImage: file,
+        selfieImagePreview: URL.createObjectURL(file),
+      });
+      const uploadedUrl = await uploadToCloudinary(file, "image");
+      setSelfieForm((prev) => ({
+        ...prev,
+        selfieImageUrl: uploadedUrl,
+      }));
+      // Automatically verify after selfie is uploaded
+      if (uploadedUrl && profile?.drivingLicenseImg && profile?.drivingLicenseNumber) {
+        await verifyDL(uploadedUrl);
+      }
+    } else {
+      setSelfieForm({
+        selfieImage: null,
+        selfieImagePreview: null,
+        selfieImageUrl: null,
+      });
+    }
+  };
+
+  const verifyDL = async (selfieUrlParam) => {
+    const selfieUrlToUse = selfieUrlParam || selfieForm.selfieImageUrl;
+    if (!profile?.drivingLicenseImg || !profile?.drivingLicenseNumber || !selfieUrlToUse) {
+      alert("Please provide all required images and license number.");
+      return;
+    }
+    try {
+      console.log("11");
+      
+      const res = await fetch("http://localhost:9090/api/customers/dl/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          dl_image_url: profile.drivingLicenseImg,
+          entered_dl_number: profile.drivingLicenseNumber,
+          selfie_image_url: selfieUrlToUse,
+          customerName: profile.fullName,
+          dateOfBirth: profile.dateOfBirth,
+        }),
+      });
+      console.log("22");
+      const result = await res.json();
+      console.log(result);
+      console.log(profile.fullName,profile.dateOfBirth);
+      console.log("33")
+      
+      // Handle new response fields for match status
+      if (result.status === "verified") {
+        await fetch(`${BASE_URL2}/api/customers/${customerId}/status`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: "verified" }),
+        });
+        localStorage.setItem("drivingLicenseStatus", "verified");
+        setProfile((prev) => ({ ...prev, drivingLicenseStatus: "verified" }));
+        alert("DL verified and status updated!");
+      } else {
+        alert(result.reason || result.message || "DL verification failed. See details in console.");
+        console.log("DL Verification details:", result);
+      }
+    } catch (error) {
+      alert("Verification failed.");
     }
   };
 
@@ -958,6 +1029,7 @@ const Dashboard = () => {
                   <div className="grid md:grid-cols-2 gap-8">
                     {/* Left Column */}
                     <div className="space-y-6">
+                      {/* Full Name */}
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -989,6 +1061,7 @@ const Dashboard = () => {
                         )}
                       </motion.div>
 
+                      {/* Email Address */}
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -1008,10 +1081,44 @@ const Dashboard = () => {
                           </div>
                         )}
                       </motion.div>
-                    </div>
 
+                      {/* Date of Birth */}
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <label className="text-sm font-semibold text-gray-700 mb-3 flex items-center space-x-2">
+                          <Calendar className="w-4 h-4 text-red-500" />
+                          <span>Date of Birth</span>
+                        </label>
+                        {isEditingProfile ? (
+                          <motion.input
+                            initial={{ scale: 0.95 }}
+                            animate={{ scale: 1 }}
+                            type="date"
+                            value={editProfile.dateOfBirth}
+                            onChange={(e) =>
+                              setEditProfile({
+                                ...editProfile,
+                                dateOfBirth: e.target.value,
+                              })
+                            }
+                            className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 bg-white shadow-sm"
+                            placeholder="Enter your date of birth"
+                          />
+                        ) : (
+                          <div className="px-4 py-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl text-gray-900 border-2 border-gray-200 font-medium">
+                            {profile.dateOfBirth
+                              ? new Date(profile.dateOfBirth).toLocaleDateString()
+                              : "Not provided"}
+                          </div>
+                        )}
+                      </motion.div>
+                    </div>
                     {/* Right Column */}
                     <div className="space-y-6">
+                      {/* Phone Number */}
                       <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -1049,6 +1156,7 @@ const Dashboard = () => {
                         )}
                       </motion.div>
 
+                      {/* Address */}
                       <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -1087,7 +1195,7 @@ const Dashboard = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 }}
+                      transition={{ delay: 0.6 }}
                       className="mt-8 pt-6 border-t border-gray-200"
                     >
                       <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -1503,8 +1611,9 @@ const Dashboard = () => {
                     </motion.div>
                   </div>
 
+
                   {/* Action Buttons for License */}
-                  {isEditingLicense && (
+                  {isEditingLicense && !showSelfieStep && (
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -1532,6 +1641,37 @@ const Dashboard = () => {
                         </motion.button>
                       </div>
                     </motion.div>
+                  )}
+
+                  {/* Selfie Upload Step */}
+                  {showSelfieStep && (
+                    <div className="flex flex-col items-center mt-8">
+                      <label
+                        htmlFor="selfie-upload"
+                        className="w-full max-w-md border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center transition-all duration-200 bg-gray-50 border-gray-200 cursor-pointer hover:border-red-400 hover:bg-red-50 mt-4"
+                      >
+                        <Camera className="w-12 h-12 mb-3 text-gray-400" />
+                        <span className="font-semibold text-gray-700">Upload Selfie with License</span>
+                        <p className="text-sm text-gray-500 mt-1">Drag & drop or click to upload</p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleSelfieImageChange}
+                          className="hidden"
+                          id="selfie-upload"
+                        />
+                      </label>
+                      {selfieForm.selfieImagePreview && (
+                        <div className="mt-4 w-full max-w-md">
+                          <img
+                            src={selfieForm.selfieImagePreview}
+                            alt="Selfie Preview"
+                            className="w-full h-auto rounded-xl shadow-lg border border-gray-200"
+                          />
+                        </div>
+                      )}
+                      <p className="mt-2 text-blue-600 font-semibold">After uploading your selfie, verification will start automatically.</p>
+                    </div>
                   )}
                 </div>
               </motion.div>

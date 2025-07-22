@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,5 +19,6 @@ public class CustomerDto {
     private String address;
     private String drivingLicenseNumber;
     private Integer userId;
+    private LocalDate dateOfBirth ;
 }
 

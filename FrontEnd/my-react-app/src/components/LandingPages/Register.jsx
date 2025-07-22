@@ -35,7 +35,7 @@ const Register = () => {
     phoneNumber: "",
     password: "",
     confirmPassword: "",
-    dateofbirth: "",
+    dateOfBirth: "",
 
     // Customer specific fields
     
@@ -305,18 +305,18 @@ const Register = () => {
       } else if (!/^[6-9]\d{9}$/.test(formData.phoneNumber)) {
         newErrors.phoneNumber = "Please enter a valid Indian phone number";
       }
-      if (!formData.dateofbirth) {
-        newErrors.dateofbirth = "Please enter a valid Birth Date";
-      }else if(formData.dateofbirth){
-        const dob = new Date(formData.dateofbirth);
+      if (!formData.dateOfBirth) {
+        newErrors.dateOfBirth = "Please enter a valid Birth Date";
+      } else if (formData.dateOfBirth) {
+        const dateOfBirth = new Date(formData.dateOfBirth);
         const today = new Date();
-        let age = today.getFullYear() - dob.getFullYear();
-        const m = today.getMonth() - dob.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        let age = today.getFullYear() - dateOfBirth.getFullYear();
+        const m = today.getMonth() - dateOfBirth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dateOfBirth.getDate())) {
           age--;
         }
         if (age < 18) {
-          newErrors.dateofbirth = "Must be 18 years or older";
+          newErrors.dateOfBirth = "Must be 18 years or older";
         }
       }
     } else if (step === 2) {
@@ -386,8 +386,8 @@ const Register = () => {
         fullName: `${formData.firstName} ${formData.lastName}`,
         address: formData.address,
         phoneNumber: formData.phoneNumber,
-        drivingLicenseStatus:formData.drivingLicenseStatus,
-        dateOfBirth: formData.dateofbirth,
+        drivingLicenseStatus: formData.drivingLicenseStatus,
+        dateOfBirth: formData.dateOfBirth,
       };
     } else if (role === "manager") {
       payload.rentalCompany = {
@@ -399,6 +399,8 @@ const Register = () => {
         phoneNumber: formData.phoneNumber,
       };
     }
+
+    console.log("Payload being sent:", payload);
 
     try {
       const response = await fetch(
@@ -442,6 +444,7 @@ const Register = () => {
           phoneNumber: "",
           password: "",
           confirmPassword: "",
+          dateOfBirth: "",
           drivingLicense: "",
           drivingLicenseExpiry: "",
           companyName: "",
@@ -696,7 +699,7 @@ const Register = () => {
 
             <motion.div variants={itemVariants}>
               <label
-                htmlFor="dateofbirth"
+                htmlFor="dateOfBirth"
                 className="block text-sm font-medium text-gray-700"
               >
                 Date of Birth
@@ -707,27 +710,28 @@ const Register = () => {
                 </div>
                 <motion.input
                   type="date"
-                  name="dateofbirth"
-                  id="dateofbirth"
+                  name="dateOfBirth"
+                  id="dateOfBirth"
+                  value={formData.dateOfBirth}
                   onChange={(e) => {
                     const value = e.target.value;
                     setFormData((prev) => ({
                       ...prev,
-                      dateofbirth: value, // ISO format (YYYY-MM-DD)
+                      dateOfBirth: value, // ISO format (YYYY-MM-DD)
                     }));
                   }}
                   className="block w-full pl-10 pr-3 py-3 sm:text-sm border-2 border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 transition-all duration-300"
                   whileFocus={{ scale: 1.01, borderColor: "#ef4444" }}
                 />
               </div>
-              {errors.dateofbirth && (
+              {errors.dateOfBirth && (
                 <motion.p
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-1 text-xs text-red-600 flex items-center"
                 >
                   <AlertCircle size={12} className="mr-1" />{" "}
-                  {errors.dateofbirth}
+                  {errors.dateOfBirth}
                 </motion.p>
               )}
             </motion.div>

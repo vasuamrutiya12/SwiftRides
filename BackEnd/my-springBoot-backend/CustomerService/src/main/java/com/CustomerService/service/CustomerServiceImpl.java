@@ -56,6 +56,7 @@ public class CustomerServiceImpl implements CustomerService {
                     existing.setAddress(updatedCustomer.getAddress());
                     existing.setDrivingLicenseNumber(updatedCustomer.getDrivingLicenseNumber());
                     existing.setDrivingLicenseImg(updatedCustomer.getDrivingLicenseImg());
+                    existing.setDateOfBirth(updatedCustomer.getDateOfBirth());
                     return customerRepository.save(existing);
                 }).orElseThrow(() -> new RuntimeException("Customer not found"));
     }

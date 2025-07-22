@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 import lombok.*;
 
 import java.security.Timestamp;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "customers")
@@ -27,6 +28,9 @@ public class Customer {
 
     private String phoneNumber;
 
+    @Column(name = "dateOfBirth")
+    private LocalDate dateOfBirth ;  // Date of Birth
+
     @Column(columnDefinition = "TEXT")
     private String address;
 
@@ -35,5 +39,6 @@ public class Customer {
     private String drivingLicenseImg;
 
     private String drivingLicenseStatus;
+
 
 }

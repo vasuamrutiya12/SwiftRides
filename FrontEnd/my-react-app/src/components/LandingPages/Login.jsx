@@ -139,7 +139,7 @@ export default function LoginForm() {
               className="text-4xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent mb-2"
               variants={itemVariants}
             >
-              DriveEasy
+              SwiftRides
             </motion.h1>
 
             <motion.h2 className="text-2xl font-semibold text-gray-800 mb-2" variants={itemVariants}>
