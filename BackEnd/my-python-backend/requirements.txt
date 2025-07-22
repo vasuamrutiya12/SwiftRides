@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+requests
+pillow
+pytesseract
+opencv-python
+numpy
+deepface
+tf_keras
