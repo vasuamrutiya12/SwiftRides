@@ -17,7 +17,7 @@ A modern microservices-based platform enabling seamless vehicle rentals for cust
 - Secure booking and payments (Stripe)
 - Track bookings and invoices
 - Submit reviews with photos
-- Real-time notifications and support
+- Real-time notifications and  support
 
 ### Rental Company
 - Register and verify business
@@ -71,5 +71,6 @@ A modern microservices-based platform enabling seamless vehicle rentals for cust
 cd my-react-app
 npm install
 npm run dev
+
 
 
